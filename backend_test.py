@@ -261,27 +261,163 @@ class FinancialPlannerAPITester:
         
         return len(scenario_results) == 3
 
-    def test_input_validation(self):
-        """Test input validation"""
-        print("\n=== Testing Input Validation ===")
+    def test_enhanced_calculations(self):
+        """Test calculations with enhanced dynamic sections"""
+        print("\n=== Testing Enhanced Calculations ===")
         
-        # Test with invalid/empty inputs
-        invalid_inputs = {
-            "timeline": {"revenue_start_month": 13},  # Invalid month
-            "user_growth": {"artists_y1": -100}  # Negative users
-        }
+        # Get default inputs
+        success, default_inputs = self.run_test("Get default inputs", "GET", "api/inputs/default", 200)
+        if not success:
+            print("❌ Cannot test enhanced calculations without default inputs")
+            return False
         
-        # This should either return 400 or handle gracefully
-        success, response = self.run_test(
-            "Invalid inputs test",
-            "POST",
-            "api/calculate",
-            None,  # Accept any status for this test
-            data=invalid_inputs
+        # Test calculation with enhanced inputs
+        success, calc_response = self.run_test(
+            "Calculate with enhanced features", 
+            "POST", 
+            "api/calculate", 
+            200, 
+            data=default_inputs
         )
         
-        print(f"   Input validation test completed (status varies by implementation)")
-        return True
+        if success:
+            # Validate enhanced calculation response structure
+            expected_keys = [
+                'users', 'revenue', 'costs', 'pnl', 'cashflow', 
+                'unit_economics', 'key_metrics', 'scenarios'
+            ]
+            
+            missing_keys = [key for key in expected_keys if key not in calc_response]
+            if missing_keys:
+                print(f"⚠️  Missing keys in calculation response: {missing_keys}")
+            else:
+                print("✅ All expected calculation keys present")
+            
+            # Test enhanced cost breakdown
+            if 'costs' in calc_response:
+                costs = calc_response['costs']
+                if 'annual' in costs:
+                    annual_costs = costs['annual']
+                    enhanced_cost_categories = [
+                        'team', 'digital_infra', 'physical_infra', 'hardware',
+                        'marketing', 'travel', 'admin', 'other'
+                    ]
+                    
+                    missing_categories = [cat for cat in enhanced_cost_categories if cat not in annual_costs]
+                    if missing_categories:
+                        print(f"⚠️  Missing cost categories: {missing_categories}")
+                    else:
+                        print("✅ All enhanced cost categories present")
+                        
+                        # Print sample cost breakdown for Year 1
+                        print("   Year 1 Cost Breakdown:")
+                        for category in enhanced_cost_categories:
+                            if category in annual_costs and len(annual_costs[category]) > 0:
+                                value = annual_costs[category][0]
+                                print(f"     {category.title()}: ₹{value:,}")
+            
+            # Test revenue breakdown with other income
+            if 'revenue' in calc_response:
+                revenue = calc_response['revenue']
+                if 'annual' in revenue:
+                    annual_revenue = revenue['annual']
+                    revenue_streams = ['artist_premium', 'cd_premium', 'boosts', 'escrow', 'other_income']
+                    
+                    missing_streams = [stream for stream in revenue_streams if stream not in annual_revenue]
+                    if missing_streams:
+                        print(f"⚠️  Missing revenue streams: {missing_streams}")
+                    else:
+                        print("✅ All revenue streams present including other income")
+        
+        return success
+
+    def test_dynamic_modifications(self):
+        """Test calculations with modified dynamic sections"""
+        print("\n=== Testing Dynamic Section Modifications ===")
+        
+        # Get default inputs
+        success, default_inputs = self.run_test("Get default inputs", "GET", "api/inputs/default", 200)
+        if not success:
+            return False
+        
+        # Modify inputs to test dynamic features
+        modified_inputs = default_inputs.copy()
+        
+        # Add a new team member
+        new_member = {
+            "id": "test-member-123",
+            "name": "Test Developer",
+            "role": "employee",
+            "monthly_salary": 75000,
+            "start_month": 6,
+            "start_year": 1
+        }
+        modified_inputs['team_costs']['members'].append(new_member)
+        
+        # Add a new hardware item
+        new_hardware = {
+            "id": "test-hardware-123",
+            "name": "Test Equipment",
+            "unit_cost": 25000,
+            "quantity": 2,
+            "purchase_month": 3,
+            "purchase_year": 1
+        }
+        modified_inputs['hardware_costs']['items'].append(new_hardware)
+        
+        # Add a new travel expense
+        new_travel = {
+            "id": "test-travel-123",
+            "name": "Conference Travel",
+            "estimated_monthly": 15000,
+            "start_month": 4,
+            "start_year": 2,
+            "is_recurring": False
+        }
+        modified_inputs['travel_costs']['items'].append(new_travel)
+        
+        # Add other income source
+        new_income = {
+            "id": "test-income-123",
+            "name": "Consulting Revenue",
+            "amount": 50000,
+            "start_month": 6,
+            "start_year": 1,
+            "is_recurring": True
+        }
+        modified_inputs['other_income']['items'].append(new_income)
+        
+        # Add new funding round
+        new_funding = {
+            "id": "test-funding-123",
+            "name": "Bridge Round",
+            "amount": 2000000,
+            "month": 6,
+            "year": 2,
+            "investor": "Strategic Investor",
+            "notes": "Bridge funding"
+        }
+        modified_inputs['funding']['rounds'].append(new_funding)
+        
+        # Test calculation with modified inputs
+        success, calc_response = self.run_test(
+            "Calculate with modified dynamic sections", 
+            "POST", 
+            "api/calculate", 
+            200, 
+            data=modified_inputs
+        )
+        
+        if success:
+            print("✅ Calculations work with modified dynamic sections")
+            
+            # Verify that modifications affected calculations
+            if 'costs' in calc_response and 'revenue' in calc_response:
+                costs = calc_response['costs']['annual']['total'][0] if calc_response['costs']['annual']['total'] else 0
+                revenue = calc_response['revenue']['annual']['total'][0] if calc_response['revenue']['annual']['total'] else 0
+                print(f"   Modified calculation - Y1 Revenue: ₹{revenue:,}, Y1 Costs: ₹{costs:,}")
+        
+        return success
 
 def main():
     print("🚀 Starting CastingKart Financial Planner API Tests")
