@@ -1,53 +1,74 @@
-import { useEffect } from "react";
+import React, { useState } from 'react';
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { FinancialProvider, useFinancial } from './context/FinancialContext';
+import { Sidebar } from './components/layout/Sidebar';
+import { Header } from './components/layout/Header';
+import { MasterInputsScreen } from './components/screens/MasterInputsScreen';
+import { RevenueScreen } from './components/screens/RevenueScreen';
+import { CostsScreen } from './components/screens/CostsScreen';
+import { PnLScreen } from './components/screens/PnLScreen';
+import { CashFlowScreen } from './components/screens/CashFlowScreen';
+import { UnitEconomicsScreen } from './components/screens/UnitEconomicsScreen';
+import { KeyMetricsScreen } from './components/screens/KeyMetricsScreen';
+import { ScenariosScreen } from './components/screens/ScenariosScreen';
+import { Toaster } from './components/ui/sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function AppContent() {
+  const [activeScreen, setActiveScreen] = useState('inputs');
+  const { loading } = useFinancial();
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+  const renderScreen = () => {
+    switch (activeScreen) {
+      case 'inputs':
+        return <MasterInputsScreen />;
+      case 'revenue':
+        return <RevenueScreen />;
+      case 'costs':
+        return <CostsScreen />;
+      case 'pnl':
+        return <PnLScreen />;
+      case 'cashflow':
+        return <CashFlowScreen />;
+      case 'unit-economics':
+        return <UnitEconomicsScreen />;
+      case 'metrics':
+        return <KeyMetricsScreen />;
+      case 'scenarios':
+        return <ScenariosScreen />;
+      default:
+        return <MasterInputsScreen />;
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="app-container" data-testid="app-container">
+      <Sidebar activeScreen={activeScreen} onScreenChange={setActiveScreen} />
+      
+      <main className="main-content">
+        <Header activeScreen={activeScreen} />
+        
+        <div className="content-body">
+          {loading && (
+            <div className="fixed top-4 right-4 bg-white border border-slate-200 rounded-lg px-4 py-2 shadow-lg flex items-center gap-2 z-50">
+              <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              <span className="text-sm text-slate-600">Calculating...</span>
+            </div>
+          )}
+          
+          {renderScreen()}
+        </div>
+      </main>
+      
+      <Toaster position="bottom-right" />
     </div>
   );
-};
+}
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <FinancialProvider>
+      <AppContent />
+    </FinancialProvider>
   );
 }
 
