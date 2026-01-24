@@ -226,8 +226,8 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
     onUpdate([...items, { id: generateId(), ...defaults[itemType] }]);
   };
 
-  const updateItem = (id, field, value) => {
-    const updated = items.map(item => item.id === id ? { ...item, [field]: value } : item);
+  const updateItem = (id, updates) => {
+    const updated = items.map(item => item.id === id ? { ...item, ...updates } : item);
     onUpdate(updated);
   };
 
@@ -241,7 +241,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
         <div key={item.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg flex-wrap">
           <Input
             value={item.name}
-            onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+            onChange={(e) => updateItem(item.id, { name: e.target.value })}
             className="flex-1 min-w-32 h-8 text-sm"
             placeholder="Name"
           />
@@ -249,7 +249,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           {fields.includes('unit_cost') && (
             <NumberInput
               value={item.unit_cost}
-              onChange={(v) => updateItem(item.id, 'unit_cost', v)}
+              onChange={(v) => updateItem(item.id, { unit_cost: v })}
               prefix="₹"
               className="w-24 h-8 text-sm"
             />
@@ -258,7 +258,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           {fields.includes('quantity') && (
             <NumberInput
               value={item.quantity}
-              onChange={(v) => updateItem(item.id, 'quantity', v)}
+              onChange={(v) => updateItem(item.id, { quantity: v })}
               className="w-16 h-8 text-sm"
               min={1}
             />
@@ -267,7 +267,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           {fields.includes('amount') && (
             <NumberInput
               value={item.amount}
-              onChange={(v) => updateItem(item.id, 'amount', v)}
+              onChange={(v) => updateItem(item.id, { amount: v })}
               prefix="₹"
               className="w-28 h-8 text-sm"
             />
@@ -276,7 +276,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           {fields.includes('estimated_monthly') && (
             <NumberInput
               value={item.estimated_monthly}
-              onChange={(v) => updateItem(item.id, 'estimated_monthly', v)}
+              onChange={(v) => updateItem(item.id, { estimated_monthly: v })}
               prefix="₹"
               className="w-28 h-8 text-sm"
             />
@@ -285,7 +285,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           {fields.includes('is_recurring') && (
             <Select
               value={item.is_recurring ? 'recurring' : 'onetime'}
-              onValueChange={(v) => updateItem(item.id, 'is_recurring', v === 'recurring')}
+              onValueChange={(v) => updateItem(item.id, { is_recurring: v === 'recurring' })}
             >
               <SelectTrigger className="w-24 h-8 text-xs">
                 <SelectValue />
@@ -302,8 +302,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
               value={`${item.purchase_year}-${item.purchase_month}`}
               onValueChange={(v) => {
                 const [year, month] = v.split('-').map(Number);
-                updateItem(item.id, 'purchase_year', year);
-                updateItem(item.id, 'purchase_month', month);
+                updateItem(item.id, { purchase_year: year, purchase_month: month });
               }}
             >
               <SelectTrigger className="w-24 h-8 text-xs">
@@ -321,11 +320,15 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           
           {fields.includes('start_month') && (
             <Select
-              value={`${item.start_year}-${item.start_month}`}
+              value={`${item.start_year || item.year}-${item.start_month || item.month}`}
               onValueChange={(v) => {
                 const [year, month] = v.split('-').map(Number);
-                updateItem(item.id, 'start_year', year);
-                updateItem(item.id, 'start_month', month);
+                // Handle both start_year/start_month and year/month field names
+                if (item.start_year !== undefined) {
+                  updateItem(item.id, { start_year: year, start_month: month });
+                } else {
+                  updateItem(item.id, { year: year, month: month });
+                }
               }}
             >
               <SelectTrigger className="w-24 h-8 text-xs">
@@ -344,7 +347,7 @@ function DynamicItemsSection({ items, onUpdate, itemType, fields }) {
           {fields.includes('investor') && (
             <Input
               value={item.investor || ''}
-              onChange={(e) => updateItem(item.id, 'investor', e.target.value)}
+              onChange={(e) => updateItem(item.id, { investor: e.target.value })}
               className="w-28 h-8 text-sm"
               placeholder="Investor"
             />
