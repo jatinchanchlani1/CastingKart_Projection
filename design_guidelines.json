@@ -1,0 +1,142 @@
+{
+  "identity": {
+    "persona": "E1",
+    "role": "Creative Designer (Top 1%)",
+    "principles": [
+      "Fusion over Imitation",
+      "Emotion First",
+      "Content is King",
+      "Zoom In",
+      "Negative Space",
+      "Contrast"
+    ]
+  },
+  "project": {
+    "name": "CastingKart Financial Master Planner",
+    "description": "Investor-grade financial planning tool for startups",
+    "target_audience": "Founders, VCs, Angel Investors",
+    "emotional_tone": "Precision, Authority, Growth, Stability",
+    "theme_strategy": "Primary Light Mode (Trust/Paper) with Secondary Dark Mode (Pro/Terminal)"
+  },
+  "design_system": {
+    "typography": {
+      "headings": {
+        "font_family": "Manrope, sans-serif",
+        "weights": ["600", "700", "800"],
+        "usage": "Page titles, Section headers, KPI values",
+        "letter_spacing": "-0.02em"
+      },
+      "body": {
+        "font_family": "Inter, sans-serif",
+        "weights": ["400", "500"],
+        "usage": "General text, labels, descriptions"
+      },
+      "data": {
+        "font_family": "JetBrains Mono, monospace",
+        "weights": ["400", "500"],
+        "usage": "Financial tables, currency values, calculations",
+        "feature": "Tabular nums (tnum) enabled"
+      }
+    },
+    "colors": {
+      "palette_name": "Swiss Financial Trust",
+      "base": {
+        "background": "#FFFFFF",
+        "surface": "#F8F9FA",
+        "surface_highlight": "#F1F5F9",
+        "border": "#E2E8F0"
+      },
+      "text": {
+        "primary": "#0F172A",
+        "secondary": "#64748B",
+        "muted": "#94A3B8"
+      },
+      "accents": {
+        "primary_brand": "#0F172A",
+        "growth_success": "#10B981",
+        "risk_danger": "#F43F5E",
+        "info_trust": "#2563EB",
+        "warning": "#F59E0B"
+      },
+      "charts": {
+        "revenue": "#0F172A",
+        "cost": "#F43F5E",
+        "profit": "#10B981",
+        "cash": "#2563EB"
+      }
+    },
+    "layout": {
+      "spacing_scale": "Generous (2x standard)",
+      "container_padding": "p-8 md:p-12",
+      "grid_system": "Bento Grid Mode B (High Density)",
+      "modes": {
+        "input_screen": "Split View: Left (Inputs/Controls) 40% | Right (Live Preview) 60%",
+        "dashboard": "Grid: 4 columns. Key Metrics (Top) -> Charts (Middle) -> Tables (Bottom)"
+      }
+    },
+    "visual_enhancers": {
+      "shadows": "Soft, diffuse ambient shadows (shadow-sm, shadow-md)",
+      "borders": "1px solid #E2E8F0 (Light) / #1E293B (Dark)",
+      "radius": "rounded-lg (8px) for inputs, rounded-xl (12px) for cards",
+      "textures": "Subtle noise overlay on sidebar/navigation for tactile feel"
+    },
+    "motion": {
+      "transitions": "transition-all duration-200 ease-out",
+      "micro_interactions": "Hover lift (-2px), Focus ring (offset-2)",
+      "data_visualization": "CountUp animation for numbers, smooth chart transitions"
+    }
+  },
+  "components": {
+    "inputs": {
+      "slider": "Use Shadcn Slider for growth rates/percentages. Style: Minimal track, solid thumb.",
+      "switch": "Use for toggles (e.g., 'Include Tax?', 'Monthly/Annual').",
+      "select": "Use for discrete choices (e.g., 'Business Model Type')."
+    },
+    "display": {
+      "card": "Flat, bordered, no shadow by default. Hover adds shadow-md.",
+      "table": "Dense, tabular data. Alternating row colors (zebra striping) optional for readability.",
+      "kpi_card": "Big Number (JetBrains Mono) + Trend Indicator (Green/Red arrow)."
+    },
+    "charts": {
+      "library": "Recharts (via Shadcn ChartContainer)",
+      "types": [
+        "Stacked Area (Revenue Breakdown)",
+        "Composed Chart (Revenue vs Cost)",
+        "Waterfall (P&L Walk)",
+        "Bar Chart (Monthly Burn)"
+      ]
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "Cover/Login Background",
+        "url": "https://images.unsplash.com/photo-1760561149252-914e6d2c192a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBtaW5pbWFsaXN0JTIwb2ZmaWNlJTIwYXJjaGl0ZWN0dXJlJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzY5MjY1NTUyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern geometric building facade, conveys structure and stability."
+      },
+      {
+        "category": "Report Header",
+        "url": "https://images.unsplash.com/photo-1769040344803-c1587d5e9298?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBtaW5pbWFsaXN0JTIwb2ZmaWNlJTIwYXJjaGl0ZWN0dXJlJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzY5MjY1NTUyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract architectural pattern, clean and professional."
+      }
+    ],
+    "icons": "Lucide React (Standard, Clean)"
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add 'Manrope' and 'JetBrains Mono' via Google Fonts in index.html or CSS.",
+    "2. SETUP THEME: Update tailwind.config.js with the 'Swiss Financial Trust' palette.",
+    "3. BUILD LAYOUT: Create a 'DashboardLayout' component with a sidebar and top bar.",
+    "4. MASTER INPUTS: Build the 'Master Input Screen' first. It is the heart of the app. Use a sticky sidebar for inputs if possible.",
+    "5. CHARTS: Implement Recharts with the specified color palette. Ensure tooltips are styled.",
+    "6. EXPORT: Plan for 'Export to Excel' button in the top right of every view.",
+    "7. DATA-TESTID: Add data-testid to all inputs (e.g., 'input-growth-rate', 'slider-churn')."
+  ],
+  "universal_guidelines": [
+    "Avoid gradients on backgrounds. Keep it flat and clean.",
+    "Use 'tabular-nums' class for all financial data to ensure alignment.",
+    "Negative numbers should be in Red and in parentheses: (₹1,000).",
+    "Currency symbol: ₹ (INR) only.",
+    "Do not use 'Inter' for Headings. Use 'Manrope'.",
+    "Ensure high contrast for text (Slate-900 on White)."
+  ]
+}
