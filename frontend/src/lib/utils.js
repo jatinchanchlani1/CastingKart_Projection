@@ -53,6 +53,15 @@ export function calculateGrowth(current, previous) {
   return ((current - previous) / previous) * 100;
 }
 
+// Generate UUID
+export function generateId() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Month names
 export const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -72,10 +81,15 @@ export const CHART_COLORS = {
   cdPremium: '#3B82F6',
   boosts: '#8B5CF6',
   escrow: '#10B981',
+  otherIncome: '#F59E0B',
   team: '#0F172A',
-  infrastructure: '#3B82F6',
-  marketing: '#8B5CF6',
+  digitalInfra: '#3B82F6',
+  physicalInfra: '#6366F1',
+  hardware: '#8B5CF6',
+  marketing: '#EC4899',
+  travel: '#14B8A6',
   admin: '#F59E0B',
+  other: '#64748B',
 };
 
 // Scenario colors
@@ -123,25 +137,37 @@ export const DEFAULT_INPUTS = {
     escrow_enabled_year: 3
   },
   team_costs: {
-    founder_stipend: 0,
-    founder_count: 2,
-    interns_count: 2,
-    intern_salary: 15000,
-    fulltime_start_year: 2,
-    fulltime_count_y2: 2,
-    fulltime_count_y3: 5,
-    fulltime_count_y4: 10,
-    fulltime_count_y5: 20,
-    fulltime_salary: 50000,
+    members: [
+      { id: generateId(), name: "Founder 1", role: "founder", monthly_salary: 0, start_month: 1, start_year: 1 },
+      { id: generateId(), name: "Founder 2", role: "founder", monthly_salary: 0, start_month: 1, start_year: 1 },
+      { id: generateId(), name: "Dev Intern", role: "intern", monthly_salary: 15000, start_month: 1, start_year: 1 },
+      { id: generateId(), name: "Design Intern", role: "intern", monthly_salary: 15000, start_month: 1, start_year: 1 },
+    ],
     esop_percentage: 10.0
   },
-  infra_costs: {
+  physical_infra: {
+    office_rent: 0,
+    electricity: 2000,
+    internet: 2000,
+    maintenance: 1000,
+    office_start_month: 1,
+    office_start_year: 2
+  },
+  digital_infra: {
     hosting: 5000,
     storage: 2000,
     ai_compute: 0,
     ai_enabled_year: 2,
     ai_compute_enabled: 10000,
     saas_tools: 8000
+  },
+  hardware_costs: {
+    items: [
+      { id: generateId(), name: "Laptop", unit_cost: 60000, quantity: 2, purchase_month: 1, purchase_year: 1 },
+      { id: generateId(), name: "Office Chair", unit_cost: 8000, quantity: 4, purchase_month: 1, purchase_year: 2 },
+      { id: generateId(), name: "Desk/Table", unit_cost: 5000, quantity: 4, purchase_month: 1, purchase_year: 2 },
+      { id: generateId(), name: "Stationery", unit_cost: 2000, quantity: 1, purchase_month: 1, purchase_year: 1 },
+    ]
   },
   marketing_costs: {
     organic: 10000,
@@ -154,6 +180,22 @@ export const DEFAULT_INPUTS = {
     accounting: 8000,
     misc_buffer_percentage: 10.0
   },
+  travel_costs: {
+    items: [
+      { id: generateId(), name: "Local Travel", estimated_monthly: 5000, start_month: 1, start_year: 1, is_recurring: true },
+      { id: generateId(), name: "Client Meetings", estimated_monthly: 10000, start_month: 1, start_year: 2, is_recurring: true },
+    ]
+  },
+  other_expenses: {
+    items: [
+      { id: generateId(), name: "Miscellaneous", amount: 5000, start_month: 1, start_year: 1, is_recurring: true },
+    ]
+  },
+  other_income: {
+    items: [
+      { id: generateId(), name: "Google Ads Revenue", amount: 0, start_month: 7, start_year: 2, is_recurring: true },
+    ]
+  },
   tax_inputs: {
     corporate_tax_rate: 25.0,
     gst_applicable: true,
@@ -162,8 +204,9 @@ export const DEFAULT_INPUTS = {
     depreciation_rate: 15.0
   },
   funding: {
-    seed_funding: 5000000,
-    series_a_year: 3,
-    series_a_amount: 25000000
+    rounds: [
+      { id: generateId(), name: "Seed Round", amount: 5000000, month: 1, year: 1, investor: "Angel Investors", notes: "Initial capital" },
+      { id: generateId(), name: "Series A", amount: 25000000, month: 1, year: 3, investor: "VC Fund", notes: "Growth funding" },
+    ]
   }
 };
