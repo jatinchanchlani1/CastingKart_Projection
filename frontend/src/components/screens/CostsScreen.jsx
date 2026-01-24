@@ -41,7 +41,16 @@ function CustomTooltip({ active, payload, label }) {
   return null;
 }
 
-const PIE_COLORS = [CHART_COLORS.team, CHART_COLORS.infrastructure, CHART_COLORS.marketing, CHART_COLORS.admin];
+const PIE_COLORS = [
+  CHART_COLORS.team, 
+  CHART_COLORS.digitalInfra, 
+  CHART_COLORS.physicalInfra, 
+  CHART_COLORS.hardware,
+  CHART_COLORS.marketing, 
+  CHART_COLORS.travel,
+  CHART_COLORS.admin, 
+  CHART_COLORS.other
+];
 
 export function CostsScreen() {
   const { projections, loading } = useFinancial();
@@ -67,37 +76,47 @@ export function CostsScreen() {
   const monthlyData = MONTHS.map((month, idx) => ({
     name: month,
     'Team': costs.monthly.team[idx],
-    'Infrastructure': costs.monthly.infrastructure[idx],
+    'Digital Infra': costs.monthly.digital_infra[idx],
+    'Physical Infra': costs.monthly.physical_infra[idx],
+    'Hardware': costs.monthly.hardware[idx],
     'Marketing': costs.monthly.marketing[idx],
+    'Travel': costs.monthly.travel[idx],
     'Admin': costs.monthly.admin[idx],
-    total: costs.monthly.total[idx],
-    burn: -pnl.monthly.ebitda[idx]
+    'Other': costs.monthly.other[idx],
+    total: costs.monthly.total[idx]
   }));
 
   // Prepare annual data
   const annualData = YEARS.map((year, idx) => ({
     name: year,
     'Team': costs.annual.team[idx],
-    'Infrastructure': costs.annual.infrastructure[idx],
+    'Digital Infra': costs.annual.digital_infra[idx],
+    'Physical Infra': costs.annual.physical_infra[idx],
+    'Hardware': costs.annual.hardware[idx],
     'Marketing': costs.annual.marketing[idx],
+    'Travel': costs.annual.travel[idx],
     'Admin': costs.annual.admin[idx],
+    'Other': costs.annual.other[idx],
     total: costs.annual.total[idx]
   }));
 
   // Pie chart data for Y1 cost composition
   const pieData = [
     { name: 'Team', value: costs.annual.team[0] },
-    { name: 'Infrastructure', value: costs.annual.infrastructure[0] },
+    { name: 'Digital Infra', value: costs.annual.digital_infra[0] },
+    { name: 'Physical Infra', value: costs.annual.physical_infra[0] },
+    { name: 'Hardware', value: costs.annual.hardware[0] },
     { name: 'Marketing', value: costs.annual.marketing[0] },
+    { name: 'Travel', value: costs.annual.travel[0] },
     { name: 'Admin', value: costs.annual.admin[0] },
-  ];
+    { name: 'Other', value: costs.annual.other[0] },
+  ].filter(d => d.value > 0);
 
   // Calculate metrics
   const totalY1Costs = costs.annual.total[0];
   const avgMonthlyBurn = costs.monthly.total.reduce((a, b) => a + b, 0) / 12;
-  const fixedCosts = costs.annual.team[0] + costs.annual.infrastructure[0] + costs.annual.admin[0];
-  const variableCosts = costs.annual.marketing[0];
-  const fixedPct = (fixedCosts / totalY1Costs * 100).toFixed(0);
+  const fixedCosts = costs.annual.team[0] + costs.annual.digital_infra[0] + costs.annual.physical_infra[0] + costs.annual.admin[0];
+  const fixedPct = totalY1Costs > 0 ? (fixedCosts / totalY1Costs * 100).toFixed(0) : 0;
 
   return (
     <div className="space-y-6" data-testid="costs-screen">
@@ -128,7 +147,7 @@ export function CostsScreen() {
           <CardHeader className="pb-2">
             <CardTitle className="chart-title flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />
-              Monthly Costs & Burn - Year 1
+              Monthly Costs - Year 1
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -144,38 +163,14 @@ export function CostsScreen() {
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="Team" 
-                    stackId="1" 
-                    stroke={CHART_COLORS.team} 
-                    fill={CHART_COLORS.team}
-                    fillOpacity={0.8}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="Infrastructure" 
-                    stackId="1" 
-                    stroke={CHART_COLORS.infrastructure} 
-                    fill={CHART_COLORS.infrastructure}
-                    fillOpacity={0.8}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="Marketing" 
-                    stackId="1" 
-                    stroke={CHART_COLORS.marketing} 
-                    fill={CHART_COLORS.marketing}
-                    fillOpacity={0.8}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="Admin" 
-                    stackId="1" 
-                    stroke={CHART_COLORS.admin} 
-                    fill={CHART_COLORS.admin}
-                    fillOpacity={0.8}
-                  />
+                  <Area type="monotone" dataKey="Team" stackId="1" stroke={CHART_COLORS.team} fill={CHART_COLORS.team} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Digital Infra" stackId="1" stroke={CHART_COLORS.digitalInfra} fill={CHART_COLORS.digitalInfra} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Physical Infra" stackId="1" stroke={CHART_COLORS.physicalInfra} fill={CHART_COLORS.physicalInfra} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Hardware" stackId="1" stroke={CHART_COLORS.hardware} fill={CHART_COLORS.hardware} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Marketing" stackId="1" stroke={CHART_COLORS.marketing} fill={CHART_COLORS.marketing} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Travel" stackId="1" stroke={CHART_COLORS.travel} fill={CHART_COLORS.travel} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Admin" stackId="1" stroke={CHART_COLORS.admin} fill={CHART_COLORS.admin} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Other" stackId="1" stroke={CHART_COLORS.other} fill={CHART_COLORS.other} fillOpacity={0.8} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -198,8 +193,8 @@ export function CostsScreen() {
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
+                    innerRadius={50}
+                    outerRadius={90}
                     paddingAngle={2}
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
@@ -239,9 +234,13 @@ export function CostsScreen() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar dataKey="Team" stackId="a" fill={CHART_COLORS.team} />
-                <Bar dataKey="Infrastructure" stackId="a" fill={CHART_COLORS.infrastructure} />
+                <Bar dataKey="Digital Infra" stackId="a" fill={CHART_COLORS.digitalInfra} />
+                <Bar dataKey="Physical Infra" stackId="a" fill={CHART_COLORS.physicalInfra} />
+                <Bar dataKey="Hardware" stackId="a" fill={CHART_COLORS.hardware} />
                 <Bar dataKey="Marketing" stackId="a" fill={CHART_COLORS.marketing} />
+                <Bar dataKey="Travel" stackId="a" fill={CHART_COLORS.travel} />
                 <Bar dataKey="Admin" stackId="a" fill={CHART_COLORS.admin} />
+                <Bar dataKey="Other" stackId="a" fill={CHART_COLORS.other} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -264,7 +263,7 @@ export function CostsScreen() {
                     <th className="text-right">Team</th>
                     <th className="text-right">Infra</th>
                     <th className="text-right">Marketing</th>
-                    <th className="text-right">Admin</th>
+                    <th className="text-right">Other</th>
                     <th className="text-right">Total</th>
                   </tr>
                 </thead>
@@ -273,9 +272,9 @@ export function CostsScreen() {
                     <tr key={month}>
                       <td className="font-medium">{month}</td>
                       <td className="text-right">{formatCurrency(costs.monthly.team[idx], true)}</td>
-                      <td className="text-right">{formatCurrency(costs.monthly.infrastructure[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(costs.monthly.digital_infra[idx] + costs.monthly.physical_infra[idx], true)}</td>
                       <td className="text-right">{formatCurrency(costs.monthly.marketing[idx], true)}</td>
-                      <td className="text-right">{formatCurrency(costs.monthly.admin[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(costs.monthly.travel[idx] + costs.monthly.admin[idx] + costs.monthly.other[idx] + costs.monthly.hardware[idx], true)}</td>
                       <td className="text-right font-semibold">{formatCurrency(costs.monthly.total[idx], true)}</td>
                     </tr>
                   ))}
@@ -295,25 +294,47 @@ export function CostsScreen() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Year</th>
-                    <th className="text-right">Team</th>
-                    <th className="text-right">Infra</th>
-                    <th className="text-right">Marketing</th>
-                    <th className="text-right">Admin</th>
-                    <th className="text-right">Total</th>
+                    <th>Category</th>
+                    {YEARS.map(y => <th key={y} className="text-right">{y}</th>)}
                   </tr>
                 </thead>
                 <tbody>
-                  {YEARS.map((year, idx) => (
-                    <tr key={year}>
-                      <td className="font-medium">{year}</td>
-                      <td className="text-right">{formatCurrency(costs.annual.team[idx], true)}</td>
-                      <td className="text-right">{formatCurrency(costs.annual.infrastructure[idx], true)}</td>
-                      <td className="text-right">{formatCurrency(costs.annual.marketing[idx], true)}</td>
-                      <td className="text-right">{formatCurrency(costs.annual.admin[idx], true)}</td>
-                      <td className="text-right font-semibold">{formatCurrency(costs.annual.total[idx], true)}</td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <td className="font-medium">Team</td>
+                    {costs.annual.team.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Digital Infra</td>
+                    {costs.annual.digital_infra.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Physical Infra</td>
+                    {costs.annual.physical_infra.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Hardware</td>
+                    {costs.annual.hardware.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Marketing</td>
+                    {costs.annual.marketing.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Travel</td>
+                    {costs.annual.travel.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Admin</td>
+                    {costs.annual.admin.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Other</td>
+                    {costs.annual.other.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr className="bg-slate-50">
+                    <td className="font-bold">TOTAL</td>
+                    {costs.annual.total.map((v, i) => <td key={i} className="text-right font-bold">{formatCurrency(v, true)}</td>)}
+                  </tr>
                 </tbody>
               </table>
             </div>
