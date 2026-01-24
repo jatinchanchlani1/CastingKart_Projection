@@ -71,11 +71,12 @@ class FinancialPlannerAPITester:
         success, response = self.run_test("Get default inputs", "GET", "api/inputs/default", 200)
         
         if success:
-            # Validate structure
+            # Validate enhanced structure with new dynamic sections
             required_sections = [
                 'timeline', 'user_growth', 'artist_monetization', 'cd_monetization',
-                'transactional', 'team_costs', 'infra_costs', 'marketing_costs',
-                'admin_costs', 'tax_inputs', 'funding'
+                'transactional', 'team_costs', 'physical_infra', 'digital_infra', 
+                'hardware_costs', 'marketing_costs', 'admin_costs', 'travel_costs',
+                'other_expenses', 'other_income', 'tax_inputs', 'funding'
             ]
             
             missing_sections = [section for section in required_sections if section not in response]
@@ -84,7 +85,90 @@ class FinancialPlannerAPITester:
             else:
                 print("✅ All required sections present in default inputs")
                 
+            # Test dynamic sections structure
+            self.validate_dynamic_sections(response)
+                
         return success, response
+
+    def validate_dynamic_sections(self, inputs):
+        """Validate the structure of dynamic sections"""
+        print("\n--- Validating Dynamic Sections ---")
+        
+        # Test Team Members structure
+        if 'team_costs' in inputs and 'members' in inputs['team_costs']:
+            members = inputs['team_costs']['members']
+            print(f"✅ Team members found: {len(members)} members")
+            if members:
+                member = members[0]
+                required_fields = ['id', 'name', 'role', 'monthly_salary', 'start_month', 'start_year']
+                if all(field in member for field in required_fields):
+                    print("✅ Team member structure valid")
+                else:
+                    print("⚠️  Team member missing required fields")
+        
+        # Test Hardware Items structure
+        if 'hardware_costs' in inputs and 'items' in inputs['hardware_costs']:
+            items = inputs['hardware_costs']['items']
+            print(f"✅ Hardware items found: {len(items)} items")
+            if items:
+                item = items[0]
+                required_fields = ['id', 'name', 'unit_cost', 'quantity', 'purchase_month', 'purchase_year']
+                if all(field in item for field in required_fields):
+                    print("✅ Hardware item structure valid")
+                else:
+                    print("⚠️  Hardware item missing required fields")
+        
+        # Test Travel Costs structure
+        if 'travel_costs' in inputs and 'items' in inputs['travel_costs']:
+            items = inputs['travel_costs']['items']
+            print(f"✅ Travel items found: {len(items)} items")
+            if items:
+                item = items[0]
+                required_fields = ['id', 'name', 'estimated_monthly', 'start_month', 'start_year', 'is_recurring']
+                if all(field in item for field in required_fields):
+                    print("✅ Travel item structure valid")
+                else:
+                    print("⚠️  Travel item missing required fields")
+        
+        # Test Other Expenses structure
+        if 'other_expenses' in inputs and 'items' in inputs['other_expenses']:
+            items = inputs['other_expenses']['items']
+            print(f"✅ Other expense items found: {len(items)} items")
+        
+        # Test Other Income structure
+        if 'other_income' in inputs and 'items' in inputs['other_income']:
+            items = inputs['other_income']['items']
+            print(f"✅ Other income items found: {len(items)} items")
+        
+        # Test Funding Rounds structure
+        if 'funding' in inputs and 'rounds' in inputs['funding']:
+            rounds = inputs['funding']['rounds']
+            print(f"✅ Funding rounds found: {len(rounds)} rounds")
+            if rounds:
+                round_item = rounds[0]
+                required_fields = ['id', 'name', 'amount', 'month', 'year', 'investor']
+                if all(field in round_item for field in required_fields):
+                    print("✅ Funding round structure valid")
+                else:
+                    print("⚠️  Funding round missing required fields")
+        
+        # Test Physical Infrastructure
+        if 'physical_infra' in inputs:
+            infra = inputs['physical_infra']
+            required_fields = ['office_rent', 'electricity', 'internet', 'maintenance']
+            if all(field in infra for field in required_fields):
+                print("✅ Physical infrastructure structure valid")
+            else:
+                print("⚠️  Physical infrastructure missing required fields")
+        
+        # Test Digital Infrastructure
+        if 'digital_infra' in inputs:
+            infra = inputs['digital_infra']
+            required_fields = ['hosting', 'storage', 'saas_tools', 'ai_compute_enabled']
+            if all(field in infra for field in required_fields):
+                print("✅ Digital infrastructure structure valid")
+            else:
+                print("⚠️  Digital infrastructure missing required fields")
 
     def test_calculate_endpoint(self):
         """Test the main calculation endpoint"""
