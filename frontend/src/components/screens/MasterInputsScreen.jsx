@@ -88,8 +88,8 @@ function TeamMembersSection({ members, esopPercentage, onUpdate }) {
     onUpdate('members', [...members, newMember]);
   };
 
-  const updateMember = (id, field, value) => {
-    const updated = members.map(m => m.id === id ? { ...m, [field]: value } : m);
+  const updateMember = (id, updates) => {
+    const updated = members.map(m => m.id === id ? { ...m, ...updates } : m);
     onUpdate('members', updated);
   };
 
@@ -108,13 +108,13 @@ function TeamMembersSection({ members, esopPercentage, onUpdate }) {
     <div key={member.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
       <Input
         value={member.name}
-        onChange={(e) => updateMember(member.id, 'name', e.target.value)}
+        onChange={(e) => updateMember(member.id, { name: e.target.value })}
         className="flex-1 h-8 text-sm"
         placeholder="Name"
       />
       <NumberInput
         value={member.monthly_salary}
-        onChange={(v) => updateMember(member.id, 'monthly_salary', v)}
+        onChange={(v) => updateMember(member.id, { monthly_salary: v })}
         prefix="₹"
         className="w-28 h-8 text-sm"
       />
@@ -122,8 +122,7 @@ function TeamMembersSection({ members, esopPercentage, onUpdate }) {
         value={`${member.start_year}-${member.start_month}`}
         onValueChange={(v) => {
           const [year, month] = v.split('-').map(Number);
-          updateMember(member.id, 'start_year', year);
-          updateMember(member.id, 'start_month', month);
+          updateMember(member.id, { start_year: year, start_month: month });
         }}
       >
         <SelectTrigger className="w-24 h-8 text-xs">
