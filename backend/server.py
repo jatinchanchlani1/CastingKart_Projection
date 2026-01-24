@@ -68,26 +68,58 @@ class TransactionalInputs(BaseModel):
     escrow_fee_percentage: float = 5.0
     escrow_enabled_year: int = 3
 
+# Dynamic Team Member
+class TeamMember(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "Team Member"
+    role: str = "employee"  # founder, intern, employee, other
+    monthly_salary: float = 0.0
+    start_month: int = 1  # 1-12
+    start_year: int = 1   # 1-5
+
 class TeamCosts(BaseModel):
-    founder_stipend: float = 0.0
-    founder_count: int = 2
-    interns_count: int = 2
-    intern_salary: float = 15000.0
-    fulltime_start_year: int = 2
-    fulltime_count_y2: int = 2
-    fulltime_count_y3: int = 5
-    fulltime_count_y4: int = 10
-    fulltime_count_y5: int = 20
-    fulltime_salary: float = 50000.0
+    members: List[TeamMember] = Field(default_factory=lambda: [
+        TeamMember(name="Founder 1", role="founder", monthly_salary=0, start_month=1, start_year=1),
+        TeamMember(name="Founder 2", role="founder", monthly_salary=0, start_month=1, start_year=1),
+        TeamMember(name="Dev Intern", role="intern", monthly_salary=15000, start_month=1, start_year=1),
+        TeamMember(name="Design Intern", role="intern", monthly_salary=15000, start_month=1, start_year=1),
+    ])
     esop_percentage: float = 10.0
 
-class InfraCosts(BaseModel):
+# Physical Infrastructure
+class PhysicalInfraCosts(BaseModel):
+    office_rent: float = 0.0
+    electricity: float = 2000.0
+    internet: float = 2000.0
+    maintenance: float = 1000.0
+    office_start_month: int = 1
+    office_start_year: int = 2  # Office from Year 2
+
+# Digital Infrastructure
+class DigitalInfraCosts(BaseModel):
     hosting: float = 5000.0
     storage: float = 2000.0
     ai_compute: float = 0.0
     ai_enabled_year: int = 2
     ai_compute_enabled: float = 10000.0
     saas_tools: float = 8000.0
+
+# Hardware Costs
+class HardwareItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "Laptop"
+    unit_cost: float = 60000.0
+    quantity: int = 1
+    purchase_month: int = 1
+    purchase_year: int = 1
+
+class HardwareCosts(BaseModel):
+    items: List[HardwareItem] = Field(default_factory=lambda: [
+        HardwareItem(name="Laptop", unit_cost=60000, quantity=2, purchase_month=1, purchase_year=1),
+        HardwareItem(name="Office Chair", unit_cost=8000, quantity=4, purchase_month=1, purchase_year=2),
+        HardwareItem(name="Desk/Table", unit_cost=5000, quantity=4, purchase_month=1, purchase_year=2),
+        HardwareItem(name="Stationery", unit_cost=2000, quantity=1, purchase_month=1, purchase_year=1),
+    ])
 
 class MarketingCosts(BaseModel):
     organic: float = 10000.0
@@ -100,6 +132,49 @@ class AdminCosts(BaseModel):
     accounting: float = 8000.0
     misc_buffer_percentage: float = 10.0
 
+# Travel Costs
+class TravelItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "Business Travel"
+    estimated_monthly: float = 0.0
+    start_month: int = 1
+    start_year: int = 2
+    is_recurring: bool = True  # Monthly recurring or one-time
+
+class TravelCosts(BaseModel):
+    items: List[TravelItem] = Field(default_factory=lambda: [
+        TravelItem(name="Local Travel", estimated_monthly=5000, start_month=1, start_year=1, is_recurring=True),
+        TravelItem(name="Client Meetings", estimated_monthly=10000, start_month=1, start_year=2, is_recurring=True),
+    ])
+
+# Other Expenses (Dynamic)
+class OtherExpenseItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "Miscellaneous"
+    amount: float = 0.0
+    start_month: int = 1
+    start_year: int = 1
+    is_recurring: bool = True  # Monthly recurring or one-time
+
+class OtherExpenses(BaseModel):
+    items: List[OtherExpenseItem] = Field(default_factory=lambda: [
+        OtherExpenseItem(name="Miscellaneous", amount=5000, start_month=1, start_year=1, is_recurring=True),
+    ])
+
+# Other Income (Dynamic)
+class OtherIncomeItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "Other Income"
+    amount: float = 0.0
+    start_month: int = 1
+    start_year: int = 1
+    is_recurring: bool = True  # Monthly recurring or one-time
+
+class OtherIncome(BaseModel):
+    items: List[OtherIncomeItem] = Field(default_factory=lambda: [
+        OtherIncomeItem(name="Google Ads Revenue", amount=0, start_month=7, start_year=2, is_recurring=True),
+    ])
+
 class TaxInputs(BaseModel):
     corporate_tax_rate: float = 25.0
     gst_applicable: bool = True
@@ -107,10 +182,21 @@ class TaxInputs(BaseModel):
     tds_rate: float = 10.0
     depreciation_rate: float = 15.0
 
+# Dynamic Funding Rounds
+class FundingRound(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = "Seed Round"
+    amount: float = 5000000.0
+    month: int = 1
+    year: int = 1
+    investor: str = ""
+    notes: str = ""
+
 class FundingInputs(BaseModel):
-    seed_funding: float = 5000000.0
-    series_a_year: int = 3
-    series_a_amount: float = 25000000.0
+    rounds: List[FundingRound] = Field(default_factory=lambda: [
+        FundingRound(name="Seed Round", amount=5000000, month=1, year=1, investor="Angel Investors", notes="Initial capital"),
+        FundingRound(name="Series A", amount=25000000, month=1, year=3, investor="VC Fund", notes="Growth funding"),
+    ])
 
 class FinancialInputs(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -123,9 +209,14 @@ class FinancialInputs(BaseModel):
     cd_monetization: CDMonetization = Field(default_factory=CDMonetization)
     transactional: TransactionalInputs = Field(default_factory=TransactionalInputs)
     team_costs: TeamCosts = Field(default_factory=TeamCosts)
-    infra_costs: InfraCosts = Field(default_factory=InfraCosts)
+    physical_infra: PhysicalInfraCosts = Field(default_factory=PhysicalInfraCosts)
+    digital_infra: DigitalInfraCosts = Field(default_factory=DigitalInfraCosts)
+    hardware_costs: HardwareCosts = Field(default_factory=HardwareCosts)
     marketing_costs: MarketingCosts = Field(default_factory=MarketingCosts)
     admin_costs: AdminCosts = Field(default_factory=AdminCosts)
+    travel_costs: TravelCosts = Field(default_factory=TravelCosts)
+    other_expenses: OtherExpenses = Field(default_factory=OtherExpenses)
+    other_income: OtherIncome = Field(default_factory=OtherIncome)
     tax_inputs: TaxInputs = Field(default_factory=TaxInputs)
     funding: FundingInputs = Field(default_factory=FundingInputs)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -139,9 +230,14 @@ class FinancialInputsCreate(BaseModel):
     cd_monetization: Optional[CDMonetization] = None
     transactional: Optional[TransactionalInputs] = None
     team_costs: Optional[TeamCosts] = None
-    infra_costs: Optional[InfraCosts] = None
+    physical_infra: Optional[PhysicalInfraCosts] = None
+    digital_infra: Optional[DigitalInfraCosts] = None
+    hardware_costs: Optional[HardwareCosts] = None
     marketing_costs: Optional[MarketingCosts] = None
     admin_costs: Optional[AdminCosts] = None
+    travel_costs: Optional[TravelCosts] = None
+    other_expenses: Optional[OtherExpenses] = None
+    other_income: Optional[OtherIncome] = None
     tax_inputs: Optional[TaxInputs] = None
     funding: Optional[FundingInputs] = None
 
@@ -184,7 +280,6 @@ def calculate_monthly_users(inputs: FinancialInputs) -> Dict[str, Any]:
     monthly_cds = []
     
     for month in range(1, 13):
-        # Exponential growth curve to reach year-end target
         progress = month / 12
         artists = int(artist_targets[0] * (progress ** 1.5))
         cds = int(cd_targets[0] * (progress ** 1.5))
@@ -203,6 +298,7 @@ def calculate_revenue(inputs: FinancialInputs, users: Dict[str, Any]) -> Dict[st
     am = inputs.artist_monetization
     cm = inputs.cd_monetization
     tx = inputs.transactional
+    oi = inputs.other_income
     scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
     conv_mult = scenario_mult["conversion"]
     
@@ -214,32 +310,43 @@ def calculate_revenue(inputs: FinancialInputs, users: Dict[str, Any]) -> Dict[st
         "cd_premium": [],
         "boosts": [],
         "escrow": [],
+        "other_income": [],
         "total": []
     }
     
     for month in range(1, 13):
+        # Calculate other income for this month (Year 1)
+        other_inc = 0
+        for item in oi.items:
+            if item.start_year == 1 and month >= item.start_month:
+                if item.is_recurring:
+                    other_inc += item.amount
+                elif month == item.start_month:
+                    other_inc += item.amount
+        
         if month < revenue_start:
             monthly_revenue["artist_premium"].append(0)
             monthly_revenue["cd_premium"].append(0)
             monthly_revenue["boosts"].append(0)
             monthly_revenue["escrow"].append(0)
-            monthly_revenue["total"].append(0)
+            monthly_revenue["other_income"].append(other_inc)
+            monthly_revenue["total"].append(other_inc)
         else:
             artists = users["monthly_artists"][month - 1]
             cds = users["monthly_cds"][month - 1]
             
-            # Apply conversion rates with scenario adjustment
             artist_premium = int(artists * (am.conversion_rate * conv_mult / 100) * am.premium_price)
             cd_premium = int(cds * (cm.conversion_rate * conv_mult / 100) * cm.premium_price)
             boost_revenue = int(cds * tx.avg_jobs_per_cd * (tx.boost_percentage / 100) * tx.job_boost_price)
-            escrow_rev = 0  # Escrow not enabled in Year 1
+            escrow_rev = 0
             
-            total = artist_premium + cd_premium + boost_revenue + escrow_rev
+            total = artist_premium + cd_premium + boost_revenue + escrow_rev + other_inc
             
             monthly_revenue["artist_premium"].append(artist_premium)
             monthly_revenue["cd_premium"].append(cd_premium)
             monthly_revenue["boosts"].append(boost_revenue)
             monthly_revenue["escrow"].append(escrow_rev)
+            monthly_revenue["other_income"].append(other_inc)
             monthly_revenue["total"].append(total)
     
     # Annual revenue for Years 1-5
@@ -248,6 +355,7 @@ def calculate_revenue(inputs: FinancialInputs, users: Dict[str, Any]) -> Dict[st
         "cd_premium": [],
         "boosts": [],
         "escrow": [],
+        "other_income": [],
         "total": []
     }
     
@@ -255,27 +363,38 @@ def calculate_revenue(inputs: FinancialInputs, users: Dict[str, Any]) -> Dict[st
         artists = users["annual_artists"][year]
         cds = users["annual_cds"][year]
         
-        # Average monthly paying users (accounting for churn)
         active_months = 12 if year > 0 else (12 - revenue_start + 1)
-        churn_factor = 1 - (am.churn_rate / 100 / 12 * 6)  # Average effect
+        churn_factor = 1 - (am.churn_rate / 100 / 12 * 6)
         
         artist_premium = int(artists * (am.conversion_rate * conv_mult / 100) * am.premium_price * active_months * churn_factor)
         cd_premium = int(cds * (cm.conversion_rate * conv_mult / 100) * cm.premium_price * active_months * (1 - cm.churn_rate / 100 / 12 * 6))
         boost_revenue = int(cds * tx.avg_jobs_per_cd * (tx.boost_percentage / 100) * tx.job_boost_price * active_months)
         
-        # Escrow revenue starts from specified year
         if year + 1 >= tx.escrow_enabled_year:
-            avg_job_value = 50000  # Assumed average job value
-            escrow_rev = int(cds * tx.avg_jobs_per_cd * avg_job_value * (tx.escrow_fee_percentage / 100) * active_months * 0.3)  # 30% escrow adoption
+            avg_job_value = 50000
+            escrow_rev = int(cds * tx.avg_jobs_per_cd * avg_job_value * (tx.escrow_fee_percentage / 100) * active_months * 0.3)
         else:
             escrow_rev = 0
         
-        total = artist_premium + cd_premium + boost_revenue + escrow_rev
+        # Calculate other income for this year
+        other_inc = 0
+        for item in oi.items:
+            if item.start_year <= year + 1:
+                if item.is_recurring:
+                    if item.start_year == year + 1:
+                        other_inc += item.amount * (12 - item.start_month + 1)
+                    else:
+                        other_inc += item.amount * 12
+                elif item.start_year == year + 1:
+                    other_inc += item.amount
+        
+        total = artist_premium + cd_premium + boost_revenue + escrow_rev + other_inc
         
         annual_revenue["artist_premium"].append(artist_premium)
         annual_revenue["cd_premium"].append(cd_premium)
         annual_revenue["boosts"].append(boost_revenue)
         annual_revenue["escrow"].append(escrow_rev)
+        annual_revenue["other_income"].append(int(other_inc))
         annual_revenue["total"].append(total)
     
     return {
@@ -283,87 +402,208 @@ def calculate_revenue(inputs: FinancialInputs, users: Dict[str, Any]) -> Dict[st
         "annual": annual_revenue
     }
 
+def calculate_team_costs_detailed(inputs: FinancialInputs, year: int, month: int = None) -> float:
+    """Calculate team costs for a specific year and optionally month"""
+    tc = inputs.team_costs
+    scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
+    cost_mult = scenario_mult["cost"]
+    inflation = inputs.timeline.inflation_rate / 100
+    inflation_factor = (1 + inflation) ** (year - 1)
+    
+    total = 0
+    for member in tc.members:
+        member_start_abs_month = (member.start_year - 1) * 12 + member.start_month
+        
+        if month is not None:
+            # Monthly calculation
+            current_abs_month = month
+            if current_abs_month >= member_start_abs_month:
+                total += member.monthly_salary
+        else:
+            # Annual calculation
+            year_start_abs = (year - 1) * 12 + 1
+            year_end_abs = year * 12
+            
+            if member_start_abs_month <= year_end_abs:
+                start = max(member_start_abs_month, year_start_abs)
+                active_months = year_end_abs - start + 1
+                total += member.monthly_salary * active_months
+    
+    # Add ESOP cost
+    esop_cost = total * (tc.esop_percentage / 100)
+    total += esop_cost
+    
+    return total * inflation_factor * cost_mult
+
 def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
     """Calculate costs breakdown monthly and annually"""
-    tc = inputs.team_costs
-    ic = inputs.infra_costs
+    di = inputs.digital_infra
+    pi = inputs.physical_infra
+    hw = inputs.hardware_costs
     mc = inputs.marketing_costs
     ac = inputs.admin_costs
+    tc = inputs.travel_costs
+    oe = inputs.other_expenses
     scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
     cost_mult = scenario_mult["cost"]
     
     # Monthly costs for Year 1
     monthly_costs = {
         "team": [],
-        "infrastructure": [],
+        "digital_infra": [],
+        "physical_infra": [],
+        "hardware": [],
         "marketing": [],
+        "travel": [],
         "admin": [],
+        "other": [],
         "total": []
     }
     
     for month in range(1, 13):
-        # Team costs - Year 1 (founders + interns only)
-        team = (tc.founder_stipend * tc.founder_count + tc.intern_salary * tc.interns_count) * cost_mult
+        # Team costs
+        team = calculate_team_costs_detailed(inputs, 1, month)
         
-        # Infrastructure
-        infra = (ic.hosting + ic.storage + ic.saas_tools) * cost_mult
+        # Digital Infrastructure
+        digital = (di.hosting + di.storage + di.saas_tools) * cost_mult
         
-        # Marketing (ramps up over time)
+        # Physical Infrastructure (check if started)
+        if pi.office_start_year == 1 and month >= pi.office_start_month:
+            physical = (pi.office_rent + pi.electricity + pi.internet + pi.maintenance) * cost_mult
+        else:
+            physical = 0
+        
+        # Hardware (one-time purchases)
+        hardware = 0
+        for item in hw.items:
+            if item.purchase_year == 1 and item.purchase_month == month:
+                hardware += item.unit_cost * item.quantity
+        
+        # Marketing
         marketing_ramp = min(1.0, month / 6)
         marketing = (mc.organic + mc.paid * marketing_ramp + mc.influencer * marketing_ramp) * cost_mult
+        
+        # Travel
+        travel = 0
+        for item in tc.items:
+            if item.start_year == 1 and month >= item.start_month:
+                if item.is_recurring:
+                    travel += item.estimated_monthly
+                elif month == item.start_month:
+                    travel += item.estimated_monthly
+        travel *= cost_mult
         
         # Admin
         admin_base = (ac.legal + ac.compliance + ac.accounting) * cost_mult
         admin = admin_base * (1 + ac.misc_buffer_percentage / 100)
         
-        total = team + infra + marketing + admin
+        # Other Expenses
+        other = 0
+        for item in oe.items:
+            if item.start_year == 1 and month >= item.start_month:
+                if item.is_recurring:
+                    other += item.amount
+                elif month == item.start_month:
+                    other += item.amount
+        other *= cost_mult
+        
+        total = team + digital + physical + hardware + marketing + travel + admin + other
         
         monthly_costs["team"].append(int(team))
-        monthly_costs["infrastructure"].append(int(infra))
+        monthly_costs["digital_infra"].append(int(digital))
+        monthly_costs["physical_infra"].append(int(physical))
+        monthly_costs["hardware"].append(int(hardware))
         monthly_costs["marketing"].append(int(marketing))
+        monthly_costs["travel"].append(int(travel))
         monthly_costs["admin"].append(int(admin))
+        monthly_costs["other"].append(int(other))
         monthly_costs["total"].append(int(total))
     
     # Annual costs for Years 1-5
     annual_costs = {
         "team": [],
-        "infrastructure": [],
+        "digital_infra": [],
+        "physical_infra": [],
+        "hardware": [],
         "marketing": [],
+        "travel": [],
         "admin": [],
+        "other": [],
         "total": []
     }
     
-    fulltime_by_year = [0, tc.fulltime_count_y2, tc.fulltime_count_y3, tc.fulltime_count_y4, tc.fulltime_count_y5]
     inflation = inputs.timeline.inflation_rate / 100
     
     for year in range(5):
         inflation_factor = (1 + inflation) ** year
         
         # Team costs
-        intern_cost = tc.intern_salary * tc.interns_count * 12
-        founder_cost = tc.founder_stipend * tc.founder_count * 12
-        fulltime_cost = tc.fulltime_salary * fulltime_by_year[year] * 12 if year >= tc.fulltime_start_year - 1 else 0
-        esop_cost = (intern_cost + fulltime_cost) * (tc.esop_percentage / 100)
-        team = (intern_cost + founder_cost + fulltime_cost + esop_cost) * inflation_factor * cost_mult
+        team = calculate_team_costs_detailed(inputs, year + 1)
         
-        # Infrastructure
-        ai_cost = ic.ai_compute_enabled if year >= ic.ai_enabled_year - 1 else 0
-        infra = (ic.hosting + ic.storage + ai_cost + ic.saas_tools) * 12 * inflation_factor * cost_mult
+        # Digital Infrastructure
+        ai_cost = di.ai_compute_enabled if year + 1 >= di.ai_enabled_year else 0
+        digital = (di.hosting + di.storage + ai_cost + di.saas_tools) * 12 * inflation_factor * cost_mult
         
-        # Marketing (scales with growth)
+        # Physical Infrastructure
+        if year + 1 >= pi.office_start_year:
+            if year + 1 == pi.office_start_year:
+                active_months = 12 - pi.office_start_month + 1
+            else:
+                active_months = 12
+            physical = (pi.office_rent + pi.electricity + pi.internet + pi.maintenance) * active_months * inflation_factor * cost_mult
+        else:
+            physical = 0
+        
+        # Hardware
+        hardware = 0
+        for item in hw.items:
+            if item.purchase_year == year + 1:
+                hardware += item.unit_cost * item.quantity
+        
+        # Marketing
         marketing_scale = 1 + year * 0.5
         marketing = (mc.organic + mc.paid + mc.influencer) * 12 * marketing_scale * inflation_factor * cost_mult
+        
+        # Travel
+        travel = 0
+        for item in tc.items:
+            if item.start_year <= year + 1:
+                if item.is_recurring:
+                    if item.start_year == year + 1:
+                        travel += item.estimated_monthly * (12 - item.start_month + 1)
+                    else:
+                        travel += item.estimated_monthly * 12
+                elif item.start_year == year + 1:
+                    travel += item.estimated_monthly
+        travel *= inflation_factor * cost_mult
         
         # Admin
         admin_base = (ac.legal + ac.compliance + ac.accounting) * 12 * inflation_factor * cost_mult
         admin = admin_base * (1 + ac.misc_buffer_percentage / 100)
         
-        total = team + infra + marketing + admin
+        # Other Expenses
+        other = 0
+        for item in oe.items:
+            if item.start_year <= year + 1:
+                if item.is_recurring:
+                    if item.start_year == year + 1:
+                        other += item.amount * (12 - item.start_month + 1)
+                    else:
+                        other += item.amount * 12
+                elif item.start_year == year + 1:
+                    other += item.amount
+        other *= inflation_factor * cost_mult
+        
+        total = team + digital + physical + hardware + marketing + travel + admin + other
         
         annual_costs["team"].append(int(team))
-        annual_costs["infrastructure"].append(int(infra))
+        annual_costs["digital_infra"].append(int(digital))
+        annual_costs["physical_infra"].append(int(physical))
+        annual_costs["hardware"].append(int(hardware))
         annual_costs["marketing"].append(int(marketing))
+        annual_costs["travel"].append(int(travel))
         annual_costs["admin"].append(int(admin))
+        annual_costs["other"].append(int(other))
         annual_costs["total"].append(int(total))
     
     return {
@@ -390,7 +630,7 @@ def calculate_pnl(revenue: Dict, costs: Dict, inputs: FinancialInputs) -> Dict[s
     for month in range(12):
         rev = revenue["monthly"]["total"][month]
         opex = costs["monthly"]["total"][month]
-        gross_margin = 0.85  # 85% gross margin for marketplace
+        gross_margin = 0.85
         
         gross_profit = int(rev * gross_margin)
         ebitda = gross_profit - opex
@@ -446,6 +686,9 @@ def calculate_cashflow(pnl: Dict, inputs: FinancialInputs) -> Dict[str, Any]:
     """Calculate cash flow and runway"""
     funding = inputs.funding
     
+    # Calculate total initial funding (Year 1)
+    initial_cash = sum(r.amount for r in funding.rounds if r.year == 1)
+    
     # Monthly cash flow for Year 1
     monthly_cashflow = {
         "operating_cash_flow": [],
@@ -454,16 +697,13 @@ def calculate_cashflow(pnl: Dict, inputs: FinancialInputs) -> Dict[str, Any]:
         "runway_months": []
     }
     
-    initial_cash = funding.seed_funding
     cumulative = initial_cash
     
     for month in range(12):
-        # Operating cash flow (EBITDA adjusted for working capital)
         ocf = pnl["monthly"]["ebitda"][month]
         net_burn = -ocf if ocf < 0 else 0
         cumulative += ocf
         
-        # Runway calculation
         avg_burn = sum(monthly_cashflow["net_burn"][-3:] + [net_burn]) / min(month + 1, 4) if net_burn > 0 else net_burn
         runway = int(cumulative / avg_burn) if avg_burn > 0 else 999
         
@@ -480,13 +720,13 @@ def calculate_cashflow(pnl: Dict, inputs: FinancialInputs) -> Dict[str, Any]:
         "funding_received": []
     }
     
-    cumulative = initial_cash
+    cumulative = 0
     
     for year in range(5):
         ocf = pnl["annual"]["ebitda"][year]
         
-        # Add Series A funding if applicable
-        funding_received = funding.series_a_amount if year + 1 == funding.series_a_year else 0
+        # Calculate funding for this year
+        funding_received = sum(r.amount for r in funding.rounds if r.year == year + 1)
         
         cumulative += ocf + funding_received
         net_burn = -ocf if ocf < 0 else 0
@@ -508,7 +748,6 @@ def calculate_unit_economics(revenue: Dict, users: Dict, costs: Dict, inputs: Fi
     cm = inputs.cd_monetization
     scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
     
-    # Annual unit economics
     metrics = {
         "arpu_artists": [],
         "arpu_cds": [],
@@ -526,12 +765,10 @@ def calculate_unit_economics(revenue: Dict, users: Dict, costs: Dict, inputs: Fi
         total_rev = revenue["annual"]["total"][year]
         total_cost = costs["annual"]["total"][year]
         
-        # ARPU calculations
         arpu_artists = revenue["annual"]["artist_premium"][year] / max(artists * (am.conversion_rate / 100), 1)
         arpu_cds = (revenue["annual"]["cd_premium"][year] + revenue["annual"]["boosts"][year]) / max(cds, 1)
         
-        # Margins
-        gross_margin = (total_rev * 0.85) / max(total_users, 1)  # 85% gross margin
+        gross_margin = (total_rev * 0.85) / max(total_users, 1)
         variable_costs = costs["annual"]["marketing"][year] / max(total_users, 1)
         contribution_margin = gross_margin - variable_costs
         
@@ -542,15 +779,13 @@ def calculate_unit_economics(revenue: Dict, users: Dict, costs: Dict, inputs: Fi
     
     # Find break-even point
     cumulative_profit = 0
-    for month in range(60):  # 5 years = 60 months
+    for month in range(60):
         year_idx = month // 12
         month_in_year = month % 12
         
         if year_idx == 0:
-            # Use monthly data for Year 1
             monthly_profit = revenue["monthly"]["total"][month_in_year] * 0.85 - costs["monthly"]["total"][month_in_year]
         else:
-            # Interpolate from annual data
             monthly_profit = (revenue["annual"]["total"][year_idx] * 0.85 - costs["annual"]["total"][year_idx]) / 12
         
         cumulative_profit += monthly_profit
@@ -574,7 +809,6 @@ def calculate_key_metrics(revenue: Dict, costs: Dict, pnl: Dict, inputs: Financi
         "capital_efficiency": []
     }
     
-    # Calculate CAGR
     rev_y1 = max(revenue["annual"]["total"][0], 1)
     rev_y5 = max(revenue["annual"]["total"][4], 1)
     metrics["revenue_cagr"] = round(((rev_y5 / rev_y1) ** (1/4) - 1) * 100, 1)
@@ -583,16 +817,17 @@ def calculate_key_metrics(revenue: Dict, costs: Dict, pnl: Dict, inputs: Financi
     cost_y5 = max(costs["annual"]["total"][4], 1)
     metrics["cost_cagr"] = round(((cost_y5 / cost_y1) ** (1/4) - 1) * 100, 1)
     
+    # Calculate total funding
+    total_funding = sum(r.amount for r in inputs.funding.rounds)
+    
     for year in range(5):
         rev = max(revenue["annual"]["total"][year], 1)
         cost = costs["annual"]["total"][year]
         ebitda = pnl["annual"]["ebitda"][year]
         
-        # Margins
         gross_margin = round((rev * 0.85 / rev) * 100, 1)
         ebitda_margin = round((ebitda / rev) * 100, 1)
         
-        # Burn multiple (net burn / net new ARR)
         if year > 0:
             new_arr = revenue["annual"]["total"][year] - revenue["annual"]["total"][year - 1]
             burn = -ebitda if ebitda < 0 else 0
@@ -600,18 +835,15 @@ def calculate_key_metrics(revenue: Dict, costs: Dict, pnl: Dict, inputs: Financi
         else:
             burn_multiple = round(-ebitda / max(rev, 1), 2) if ebitda < 0 else 0
         
-        # Rule of 40 (growth rate + profit margin)
         if year > 0:
             growth_rate = ((revenue["annual"]["total"][year] / max(revenue["annual"]["total"][year - 1], 1)) - 1) * 100
         else:
             growth_rate = 0
         rule_of_40 = round(growth_rate + ebitda_margin, 1)
         
-        # Capital efficiency (revenue / total capital deployed)
-        total_funding = inputs.funding.seed_funding
-        if year + 1 >= inputs.funding.series_a_year:
-            total_funding += inputs.funding.series_a_amount
-        capital_eff = round(rev / max(total_funding, 1), 2)
+        # Capital efficiency based on funding received up to this year
+        funding_till_year = sum(r.amount for r in inputs.funding.rounds if r.year <= year + 1)
+        capital_eff = round(rev / max(funding_till_year, 1), 2)
         
         metrics["gross_margin_pct"].append(gross_margin)
         metrics["ebitda_margin_pct"].append(ebitda_margin)
@@ -626,8 +858,7 @@ def calculate_all_scenarios(base_inputs: FinancialInputs) -> Dict[str, Any]:
     scenarios = {}
     
     for scenario in ["conservative", "base", "aggressive"]:
-        # Create a copy with different scenario
-        scenario_inputs = base_inputs.model_copy()
+        scenario_inputs = base_inputs.model_copy(deep=True)
         scenario_inputs.timeline.scenario = scenario
         
         users = calculate_monthly_users(scenario_inputs)
@@ -649,7 +880,7 @@ def calculate_all_scenarios(base_inputs: FinancialInputs) -> Dict[str, Any]:
 
 @api_router.get("/")
 async def root():
-    return {"message": "CastingKart Financial Master Planner API", "version": "1.0.0"}
+    return {"message": "CastingKart Financial Master Planner API", "version": "2.0.0"}
 
 @api_router.get("/health")
 async def health_check():
@@ -671,9 +902,14 @@ async def save_inputs(inputs: FinancialInputsCreate):
         cd_monetization=inputs.cd_monetization or CDMonetization(),
         transactional=inputs.transactional or TransactionalInputs(),
         team_costs=inputs.team_costs or TeamCosts(),
-        infra_costs=inputs.infra_costs or InfraCosts(),
+        physical_infra=inputs.physical_infra or PhysicalInfraCosts(),
+        digital_infra=inputs.digital_infra or DigitalInfraCosts(),
+        hardware_costs=inputs.hardware_costs or HardwareCosts(),
         marketing_costs=inputs.marketing_costs or MarketingCosts(),
         admin_costs=inputs.admin_costs or AdminCosts(),
+        travel_costs=inputs.travel_costs or TravelCosts(),
+        other_expenses=inputs.other_expenses or OtherExpenses(),
+        other_income=inputs.other_income or OtherIncome(),
         tax_inputs=inputs.tax_inputs or TaxInputs(),
         funding=inputs.funding or FundingInputs()
     )
