@@ -431,8 +431,9 @@ def main():
         tester.test_health_endpoints()
         tester.test_default_inputs()
         tester.test_calculate_endpoint()
+        tester.test_enhanced_calculations()
+        tester.test_dynamic_modifications()
         tester.test_scenario_variations()
-        tester.test_input_validation()
         
     except Exception as e:
         print(f"\n❌ Test suite failed with error: {str(e)}")
