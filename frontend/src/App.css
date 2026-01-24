@@ -76,7 +76,12 @@
 }
 
 .kpi-card {
-  @apply bg-white rounded-xl border border-slate-200 p-5 card-hover;
+  @apply bg-white rounded-xl border border-slate-200 p-5 transition-all duration-200 ease-out;
+}
+
+.kpi-card:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
 }
 
 .kpi-label {
@@ -84,7 +89,9 @@
 }
 
 .kpi-value {
-  @apply text-2xl font-bold text-slate-900 font-mono tabular-nums;
+  @apply text-2xl font-bold text-slate-900;
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: 'tnum';
 }
 
 .kpi-trend {
@@ -122,7 +129,9 @@
 }
 
 .data-table td {
-  @apply px-4 py-3 text-sm text-slate-700 border-b border-slate-100 font-mono tabular-nums;
+  @apply px-4 py-3 text-sm text-slate-700 border-b border-slate-100;
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: 'tnum';
 }
 
 .data-table tr:last-child td {
@@ -182,7 +191,9 @@
 }
 
 .metric-card-value {
-  @apply text-3xl font-bold text-slate-900 font-mono tabular-nums;
+  @apply text-3xl font-bold text-slate-900;
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: 'tnum';
 }
 
 .metric-card-subtitle {
