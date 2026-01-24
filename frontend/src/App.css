@@ -7,7 +7,9 @@
 
 /* Sidebar styles */
 .sidebar {
-  @apply w-64 bg-white border-r border-slate-200 fixed h-screen overflow-y-auto scrollbar-thin;
+  @apply w-64 bg-white border-r border-slate-200 fixed h-screen overflow-y-auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 .sidebar-header {
