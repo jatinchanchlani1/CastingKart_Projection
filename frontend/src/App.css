@@ -1,34 +1,227 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App-specific styles */
+
+/* Main layout */
+.app-container {
+  @apply min-h-screen bg-slate-50;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Sidebar styles */
+.sidebar {
+  @apply w-64 bg-white border-r border-slate-200 fixed h-screen overflow-y-auto scrollbar-thin;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.sidebar-header {
+  @apply px-6 py-5 border-b border-slate-200;
 }
 
-.App-link {
-    color: #61dafb;
+.sidebar-nav {
+  @apply py-4;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.sidebar-nav-item {
+  @apply flex items-center gap-3 px-6 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer;
+}
+
+.sidebar-nav-item.active {
+  @apply bg-slate-100 text-slate-900 font-medium border-r-2 border-slate-900;
+}
+
+/* Main content area */
+.main-content {
+  @apply ml-64 min-h-screen;
+}
+
+.content-header {
+  @apply bg-white border-b border-slate-200 px-8 py-4 sticky top-0 z-10;
+}
+
+.content-body {
+  @apply p-8;
+}
+
+/* Input sections */
+.input-section {
+  @apply bg-white rounded-xl border border-slate-200 p-6 mb-6;
+}
+
+.input-section-title {
+  @apply text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2;
+}
+
+.input-group {
+  @apply space-y-4;
+}
+
+.input-row {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.input-field {
+  @apply space-y-2;
+}
+
+.input-label {
+  @apply text-sm font-medium text-slate-700;
+}
+
+.input-helper {
+  @apply text-xs text-slate-500 mt-1;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.kpi-card {
+  @apply bg-white rounded-xl border border-slate-200 p-5 card-hover;
+}
+
+.kpi-label {
+  @apply text-sm font-medium text-slate-500 mb-1;
+}
+
+.kpi-value {
+  @apply text-2xl font-bold text-slate-900 font-mono tabular-nums;
+}
+
+.kpi-trend {
+  @apply text-xs font-medium mt-2 flex items-center gap-1;
+}
+
+.kpi-trend.positive {
+  @apply text-emerald-600;
+}
+
+.kpi-trend.negative {
+  @apply text-rose-500;
+}
+
+/* Chart containers */
+.chart-container {
+  @apply bg-white rounded-xl border border-slate-200 p-6;
+}
+
+.chart-title {
+  @apply text-base font-semibold text-slate-900 mb-4;
+}
+
+/* Data tables */
+.data-table-container {
+  @apply bg-white rounded-xl border border-slate-200 overflow-hidden;
+}
+
+.data-table {
+  @apply w-full;
+}
+
+.data-table th {
+  @apply bg-slate-50 px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider border-b border-slate-200;
+}
+
+.data-table td {
+  @apply px-4 py-3 text-sm text-slate-700 border-b border-slate-100 font-mono tabular-nums;
+}
+
+.data-table tr:last-child td {
+  @apply border-b-0;
+}
+
+.data-table tr:hover td {
+  @apply bg-slate-50;
+}
+
+/* Export button */
+.export-btn {
+  @apply inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium text-sm;
+}
+
+/* Scenario badges */
+.scenario-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.scenario-badge.conservative {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.scenario-badge.base {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.scenario-badge.aggressive {
+  @apply bg-emerald-100 text-emerald-800;
+}
+
+/* Year pills */
+.year-pill {
+  @apply inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold;
+}
+
+.year-pill.active {
+  @apply bg-slate-900 text-white;
+}
+
+.year-pill:not(.active) {
+  @apply bg-slate-100 text-slate-600;
+}
+
+/* Metric cards for dashboard */
+.metric-card {
+  @apply bg-white rounded-xl border border-slate-200 p-6;
+}
+
+.metric-card-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.metric-card-title {
+  @apply text-sm font-medium text-slate-500;
+}
+
+.metric-card-value {
+  @apply text-3xl font-bold text-slate-900 font-mono tabular-nums;
+}
+
+.metric-card-subtitle {
+  @apply text-xs text-slate-400 mt-1;
+}
+
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-slate-200 rounded;
+}
+
+/* Tooltips */
+.custom-tooltip {
+  @apply bg-white border border-slate-200 rounded-lg shadow-lg p-3;
+}
+
+.custom-tooltip-label {
+  @apply text-xs font-medium text-slate-500 mb-2;
+}
+
+.custom-tooltip-value {
+  @apply text-sm font-semibold text-slate-900;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .sidebar {
+    @apply w-56;
+  }
+  
+  .main-content {
+    @apply ml-56;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    @apply hidden;
+  }
+  
+  .main-content {
+    @apply ml-0;
+  }
 }
