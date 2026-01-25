@@ -37,7 +37,7 @@ export function Sidebar({ activeScreen, onScreenChange }) {
           </div>
           <div>
             <h1 className="text-lg font-bold text-slate-900 tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              CastingKart
+              CK
             </h1>
             <p className="text-xs text-slate-500">Financial Planner</p>
           </div>

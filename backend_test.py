@@ -420,7 +420,7 @@ class FinancialPlannerAPITester:
         return success
 
 def main():
-    print("🚀 Starting CastingKart Financial Planner API Tests")
+    print("🚀 Starting CK Financial Projection API Tests")
     print("=" * 60)
     
     # Setup

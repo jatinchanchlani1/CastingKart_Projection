@@ -22,7 +22,7 @@ export function useExcelExport() {
     // ===== Sheet 1: Dashboard with Visual Charts =====
     const dashboardData = [
       ['═══════════════════════════════════════════════════════════════════════════════'],
-      ['                    CASTINGKART FINANCIAL MASTER PLANNER                       '],
+      ['                       CK Financial Projection                       '],
       ['                         EXECUTIVE DASHBOARD                                   '],
       ['═══════════════════════════════════════════════════════════════════════════════'],
       [''],
@@ -531,7 +531,7 @@ export function useExcelExport() {
     
     const date = new Date().toISOString().split('T')[0];
     const scenario = inputs.timeline.scenario.charAt(0).toUpperCase() + inputs.timeline.scenario.slice(1);
-    saveAs(data, `CastingKart_Financial_Plan_${scenario}_${date}.xlsx`);
+    saveAs(data, `CK_Financial_Plan_${scenario}_${date}.xlsx`);
   }, []);
 
   return { exportToExcel };

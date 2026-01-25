@@ -1,7 +1,7 @@
-# CastingKart Financial Master Planner - PRD v2.0
+# CK Financial Master Planner - PRD v2.0
 
 ## Original Problem Statement
-Build a complete, professional, investor-grade Financial Master Planner web application for CastingKart (Indian startup in Entertainment/Casting/Creator Marketplace). Enhanced with dynamic input sections for team salaries, funding rounds, hardware costs, travel, other expenses, and other income.
+Build a complete, professional, investor-grade Financial Master Planner web application for CK (Indian startup in Entertainment/Casting/Creator Marketplace). Enhanced with dynamic input sections for team salaries, funding rounds, hardware costs, travel, other expenses, and other income.
 
 ## Architecture
 - **Frontend**: React with Tailwind CSS, Recharts for visualizations

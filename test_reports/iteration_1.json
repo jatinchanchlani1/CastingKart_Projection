@@ -1,5 +1,5 @@
 {
-  "summary": "Completed comprehensive testing of CastingKart Financial Master Planner - an investor-grade financial planning application with 8 screens, real-time calculations, and Excel export functionality",
+  "summary": "Completed comprehensive testing of CK Financial Projection Master Planner - an investor-grade financial planning application with 8 screens, real-time calculations, and Excel export functionality",
   "backend_issues": {
     "critical_bugs": [],
     "flaky_endpoints": [],

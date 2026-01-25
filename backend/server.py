@@ -19,7 +19,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
-app = FastAPI(title="CastingKart Financial Master Planner API")
+app = FastAPI(title="CK Financial Master Planner API")
 
 # --- ADD THIS CORS SECTION HERE ---
 app.add_middleware(
@@ -212,7 +212,7 @@ class FinancialInputs(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str = "CastingKart Financial Plan"
+    name: str = "CK Financial Projection"
     timeline: TimelineInputs = Field(default_factory=TimelineInputs)
     user_growth: UserGrowthInputs = Field(default_factory=UserGrowthInputs)
     artist_monetization: ArtistMonetization = Field(default_factory=ArtistMonetization)
@@ -233,7 +233,7 @@ class FinancialInputs(BaseModel):
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class FinancialInputsCreate(BaseModel):
-    name: Optional[str] = "CastingKart Financial Plan"
+    name: Optional[str] = "CK Financial Projection"
     timeline: Optional[TimelineInputs] = None
     user_growth: Optional[UserGrowthInputs] = None
     artist_monetization: Optional[ArtistMonetization] = None
@@ -890,7 +890,7 @@ def calculate_all_scenarios(base_inputs: FinancialInputs) -> Dict[str, Any]:
 
 @api_router.get("/")
 async def root():
-    return {"message": "CastingKart Financial Master Planner API", "version": "2.0.0"}
+    return {"message": "CK Financial Projection Planner API", "version": "2.0.0"}
 
 @api_router.get("/health")
 async def health_check():
@@ -905,7 +905,7 @@ async def get_default_inputs():
 async def save_inputs(inputs: FinancialInputsCreate):
     """Save financial inputs to database"""
     input_obj = FinancialInputs(
-        name=inputs.name or "CastingKart Financial Plan",
+        name=inputs.name or "CK Financial Plan",
         timeline=inputs.timeline or TimelineInputs(),
         user_growth=inputs.user_growth or UserGrowthInputs(),
         artist_monetization=inputs.artist_monetization or ArtistMonetization(),
