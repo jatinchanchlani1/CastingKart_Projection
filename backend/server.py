@@ -21,6 +21,16 @@ db = client[os.environ['DB_NAME']]
 # Create the main app without a prefix
 app = FastAPI(title="CastingKart Financial Master Planner API")
 
+# --- ADD THIS CORS SECTION HERE ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permits all domains for testing in Codespaces
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows GET, POST, OPTIONS, etc.
+    allow_headers=["*"],  # Allows all headers (Content-Type, etc.)
+)
+# ----------------------------------
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
