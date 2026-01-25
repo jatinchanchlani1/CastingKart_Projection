@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { DEFAULT_INPUTS } from '../lib/utils';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 export function useFinancialData() {
   const [inputs, setInputs] = useState(DEFAULT_INPUTS);
