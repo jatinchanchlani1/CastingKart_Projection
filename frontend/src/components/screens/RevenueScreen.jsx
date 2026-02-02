@@ -42,7 +42,7 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export function RevenueScreen() {
-  const { projections, loading } = useFinancial();
+  const { projections, inputs, loading } = useFinancial();
 
   if (loading || !projections) {
     return (
@@ -67,7 +67,10 @@ export function RevenueScreen() {
     'Artist Premium': revenue.monthly.artist_premium[idx],
     'CD Premium': revenue.monthly.cd_premium[idx],
     'Boosts': revenue.monthly.boosts[idx],
-    'Escrow': revenue.monthly.escrow[idx],
+    'Direct Invites': revenue.monthly.direct_invites[idx],
+    'Auditions': revenue.monthly.auditions[idx],
+    'Ads': revenue.monthly.ads[idx],
+    'Other Income': revenue.monthly.other_income[idx],
     total: revenue.monthly.total[idx]
   }));
 
@@ -77,7 +80,10 @@ export function RevenueScreen() {
     'Artist Premium': revenue.annual.artist_premium[idx],
     'CD Premium': revenue.annual.cd_premium[idx],
     'Boosts': revenue.annual.boosts[idx],
-    'Escrow': revenue.annual.escrow[idx],
+    'Direct Invites': revenue.annual.direct_invites[idx],
+    'Auditions': revenue.annual.auditions[idx],
+    'Ads': revenue.annual.ads[idx],
+    'Other Income': revenue.annual.other_income[idx],
     total: revenue.annual.total[idx]
   }));
 
@@ -87,11 +93,17 @@ export function RevenueScreen() {
   const revenueGrowth = calculateGrowth(totalY5Revenue, totalY1Revenue);
   
   // ARPU calculations
-  const arpuArtistY1 = users.annual_artists[0] > 0 
-    ? revenue.annual.artist_premium[0] / (users.annual_artists[0] * 0.05) 
+  const artistConversion = (inputs?.artist_monetization?.conversion_rate || 0) / 100;
+  const arpuArtistY1 = users.annual_artists[0] > 0 && artistConversion > 0
+    ? revenue.annual.artist_premium[0] / (users.annual_artists[0] * artistConversion)
     : 0;
   const arpuCDY1 = users.annual_cds[0] > 0 
-    ? (revenue.annual.cd_premium[0] + revenue.annual.boosts[0]) / users.annual_cds[0] 
+    ? (
+        revenue.annual.cd_premium[0] +
+        revenue.annual.boosts[0] +
+        revenue.annual.direct_invites[0] +
+        revenue.annual.auditions[0]
+      ) / users.annual_cds[0] 
     : 0;
 
   return (
@@ -167,6 +179,38 @@ export function RevenueScreen() {
                   fill={CHART_COLORS.boosts}
                   fillOpacity={0.8}
                 />
+                <Area 
+                  type="monotone" 
+                  dataKey="Direct Invites" 
+                  stackId="1" 
+                  stroke={CHART_COLORS.directInvites} 
+                  fill={CHART_COLORS.directInvites}
+                  fillOpacity={0.8}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="Auditions" 
+                  stackId="1" 
+                  stroke={CHART_COLORS.auditions} 
+                  fill={CHART_COLORS.auditions}
+                  fillOpacity={0.8}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="Ads" 
+                  stackId="1" 
+                  stroke={CHART_COLORS.ads} 
+                  fill={CHART_COLORS.ads}
+                  fillOpacity={0.8}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="Other Income" 
+                  stackId="1" 
+                  stroke={CHART_COLORS.otherIncome} 
+                  fill={CHART_COLORS.otherIncome}
+                  fillOpacity={0.8}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -197,7 +241,10 @@ export function RevenueScreen() {
                 <Bar dataKey="Artist Premium" stackId="a" fill={CHART_COLORS.artistPremium} />
                 <Bar dataKey="CD Premium" stackId="a" fill={CHART_COLORS.cdPremium} />
                 <Bar dataKey="Boosts" stackId="a" fill={CHART_COLORS.boosts} />
-                <Bar dataKey="Escrow" stackId="a" fill={CHART_COLORS.escrow} />
+                <Bar dataKey="Direct Invites" stackId="a" fill={CHART_COLORS.directInvites} />
+                <Bar dataKey="Auditions" stackId="a" fill={CHART_COLORS.auditions} />
+                <Bar dataKey="Ads" stackId="a" fill={CHART_COLORS.ads} />
+                <Bar dataKey="Other Income" stackId="a" fill={CHART_COLORS.otherIncome} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -220,6 +267,10 @@ export function RevenueScreen() {
                     <th className="text-right">Artist</th>
                     <th className="text-right">CD</th>
                     <th className="text-right">Boosts</th>
+                    <th className="text-right">Invites</th>
+                    <th className="text-right">Auditions</th>
+                    <th className="text-right">Ads</th>
+                    <th className="text-right">Other</th>
                     <th className="text-right">Total</th>
                   </tr>
                 </thead>
@@ -230,6 +281,10 @@ export function RevenueScreen() {
                       <td className="text-right">{formatCurrency(revenue.monthly.artist_premium[idx], true)}</td>
                       <td className="text-right">{formatCurrency(revenue.monthly.cd_premium[idx], true)}</td>
                       <td className="text-right">{formatCurrency(revenue.monthly.boosts[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.monthly.direct_invites[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.monthly.auditions[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.monthly.ads[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.monthly.other_income[idx], true)}</td>
                       <td className="text-right font-semibold">{formatCurrency(revenue.monthly.total[idx], true)}</td>
                     </tr>
                   ))}
@@ -253,7 +308,10 @@ export function RevenueScreen() {
                     <th className="text-right">Artist</th>
                     <th className="text-right">CD</th>
                     <th className="text-right">Boosts</th>
-                    <th className="text-right">Escrow</th>
+                    <th className="text-right">Invites</th>
+                    <th className="text-right">Auditions</th>
+                    <th className="text-right">Ads</th>
+                    <th className="text-right">Other</th>
                     <th className="text-right">Total</th>
                   </tr>
                 </thead>
@@ -264,7 +322,10 @@ export function RevenueScreen() {
                       <td className="text-right">{formatCurrency(revenue.annual.artist_premium[idx], true)}</td>
                       <td className="text-right">{formatCurrency(revenue.annual.cd_premium[idx], true)}</td>
                       <td className="text-right">{formatCurrency(revenue.annual.boosts[idx], true)}</td>
-                      <td className="text-right">{formatCurrency(revenue.annual.escrow[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.annual.direct_invites[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.annual.auditions[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.annual.ads[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(revenue.annual.other_income[idx], true)}</td>
                       <td className="text-right font-semibold">{formatCurrency(revenue.annual.total[idx], true)}</td>
                     </tr>
                   ))}

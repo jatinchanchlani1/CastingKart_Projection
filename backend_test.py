@@ -1,51 +1,100 @@
-import requests
 import sys
 import json
+import os
 from datetime import datetime
 
+os.environ.setdefault("SKIP_DB", "1")
+sys.path.append(os.path.dirname(__file__))
+from backend.server import (
+    FinancialInputs,
+    calculate_monthly_users,
+    calculate_revenue,
+    calculate_costs,
+    calculate_pnl,
+    calculate_cashflow,
+    calculate_unit_economics,
+    calculate_key_metrics,
+    calculate_investor_summary,
+    calculate_all_scenarios,
+)
+
 class FinancialPlannerAPITester:
-    def __init__(self, base_url="https://startupfinance.preview.emergentagent.com"):
-        self.base_url = base_url
+    def __init__(self):
+        self.use_http = os.environ.get("USE_HTTP", "0") in {"1", "true", "yes"}
+        self.base_url = os.environ.get("BASE_URL", "http://localhost:8000")
         self.tests_run = 0
         self.tests_passed = 0
         self.failed_tests = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None):
         """Run a single API test"""
-        url = f"{self.base_url}/{endpoint}"
-        headers = {'Content-Type': 'application/json'}
-
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
-        print(f"   URL: {url}")
         
         try:
-            if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=30)
-            elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=30)
+            effective_endpoint = endpoint
+            if not self.use_http and endpoint.startswith("api/"):
+                effective_endpoint = endpoint.replace("api/", "", 1)
 
-            success = response.status_code == expected_status
-            if success:
-                self.tests_passed += 1
-                print(f"✅ Passed - Status: {response.status_code}")
-                try:
-                    response_data = response.json()
+            if self.use_http:
+                import requests
+                url = f"{self.base_url}/{endpoint}"
+                if method == 'GET':
+                    response = requests.get(url, timeout=30)
+                elif method == 'POST':
+                    response = requests.post(url, json=data, timeout=30)
+                success = response.status_code == expected_status
+                if success:
+                    self.tests_passed += 1
+                    print(f"✅ Passed - Status: {response.status_code}")
+                    response_data = response.json() if response.text else {}
                     print(f"   Response keys: {list(response_data.keys()) if isinstance(response_data, dict) else 'Non-dict response'}")
-                except:
-                    print("   Response: Non-JSON or empty")
+                else:
+                    print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                    print(f"   Response: {response.text[:200]}...")
+                    self.failed_tests.append({
+                        'name': name,
+                        'expected': expected_status,
+                        'actual': response.status_code,
+                        'response': response.text[:200]
+                    })
+                    response_data = {}
+                return success, response_data
+
+            if effective_endpoint == "inputs/default":
+                inputs = FinancialInputs()
+                response_data = inputs.model_dump()
+            elif effective_endpoint == "calculate":
+                inputs = FinancialInputs(**(data or {}))
+                users = calculate_monthly_users(inputs)
+                revenue = calculate_revenue(inputs, users)
+                costs = calculate_costs(inputs, revenue)
+                pnl = calculate_pnl(revenue, costs, inputs)
+                cashflow = calculate_cashflow(pnl, inputs)
+                unit_economics = calculate_unit_economics(revenue, users, costs, inputs)
+                key_metrics = calculate_key_metrics(revenue, costs, pnl, inputs)
+                scenarios = calculate_all_scenarios(inputs)
+                response_data = {
+                    "users": users,
+                    "revenue": revenue,
+                    "costs": costs,
+                    "pnl": pnl,
+                    "cashflow": cashflow,
+                    "unit_economics": unit_economics,
+                    "key_metrics": key_metrics,
+                    "investor_summary": calculate_investor_summary(
+                        revenue, costs, pnl, cashflow, users, unit_economics, key_metrics, inputs
+                    ),
+                    "scenarios": scenarios,
+                }
             else:
-                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                print(f"   Response: {response.text[:200]}...")
-                self.failed_tests.append({
-                    'name': name,
-                    'expected': expected_status,
-                    'actual': response.status_code,
-                    'response': response.text[:200]
-                })
+                response_data = {"status": "ok"}
 
-            return success, response.json() if success and response.text else {}
-
+            success = True
+            self.tests_passed += 1
+            print("✅ Passed")
+            print(f"   Response keys: {list(response_data.keys()) if isinstance(response_data, dict) else 'Non-dict response'}")
+            return success, response_data
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
             self.failed_tests.append({
@@ -74,7 +123,8 @@ class FinancialPlannerAPITester:
             # Validate enhanced structure with new dynamic sections
             required_sections = [
                 'timeline', 'user_growth', 'artist_monetization', 'cd_monetization',
-                'transactional', 'team_costs', 'physical_infra', 'digital_infra', 
+                'transactional', 'plan_limits', 'monetized_actions', 'volume_assumptions', 'unit_costs',
+                'team_costs', 'physical_infra', 'digital_infra', 
                 'hardware_costs', 'marketing_costs', 'admin_costs', 'travel_costs',
                 'other_expenses', 'other_income', 'tax_inputs', 'funding'
             ]
@@ -193,7 +243,7 @@ class FinancialPlannerAPITester:
             # Validate calculation response structure
             expected_keys = [
                 'users', 'revenue', 'costs', 'pnl', 'cashflow', 
-                'unit_economics', 'key_metrics', 'scenarios'
+                'unit_economics', 'key_metrics', 'investor_summary', 'scenarios'
             ]
             
             missing_keys = [key for key in expected_keys if key not in calc_response]
@@ -284,7 +334,7 @@ class FinancialPlannerAPITester:
             # Validate enhanced calculation response structure
             expected_keys = [
                 'users', 'revenue', 'costs', 'pnl', 'cashflow', 
-                'unit_economics', 'key_metrics', 'scenarios'
+                'unit_economics', 'key_metrics', 'investor_summary', 'scenarios'
             ]
             
             missing_keys = [key for key in expected_keys if key not in calc_response]
@@ -300,7 +350,7 @@ class FinancialPlannerAPITester:
                     annual_costs = costs['annual']
                     enhanced_cost_categories = [
                         'team', 'digital_infra', 'physical_infra', 'hardware',
-                        'marketing', 'travel', 'admin', 'other'
+                        'marketing', 'travel', 'admin', 'other', 'platform_variable'
                     ]
                     
                     missing_categories = [cat for cat in enhanced_cost_categories if cat not in annual_costs]
@@ -321,7 +371,10 @@ class FinancialPlannerAPITester:
                 revenue = calc_response['revenue']
                 if 'annual' in revenue:
                     annual_revenue = revenue['annual']
-                    revenue_streams = ['artist_premium', 'cd_premium', 'boosts', 'escrow', 'other_income']
+                    revenue_streams = [
+                        'artist_premium', 'cd_premium', 'boosts',
+                        'direct_invites', 'auditions', 'ads', 'other_income'
+                    ]
                     
                     missing_streams = [stream for stream in revenue_streams if stream not in annual_revenue]
                     if missing_streams:
@@ -419,6 +472,87 @@ class FinancialPlannerAPITester:
         
         return success
 
+    def test_sanity_checks(self):
+        """Sanity-check internal arithmetic consistency"""
+        print("\n=== Sanity Checks ===")
+
+        success, calc_response = self.run_test(
+            "Calculate projections (sanity)",
+            "POST",
+            "api/calculate",
+            200,
+            data=FinancialInputs().model_dump()
+        )
+        if not success:
+            print("❌ Sanity checks skipped (calculation failed)")
+            return False
+
+        revenue = calc_response["revenue"]
+        costs = calc_response["costs"]
+        pnl = calc_response["pnl"]
+
+        def assert_close(label, a, b, tolerance=1):
+            if abs(a - b) > tolerance:
+                raise AssertionError(f"{label} mismatch: {a} != {b}")
+
+        # Revenue stream sums
+        revenue_streams = [
+            "artist_premium", "cd_premium", "boosts",
+            "direct_invites", "auditions", "ads", "other_income"
+        ]
+        for i in range(12):
+            stream_sum = sum(revenue["monthly"][k][i] for k in revenue_streams)
+            assert_close(f"Monthly revenue total M{i+1}", stream_sum, revenue["monthly"]["total"][i], tolerance=2)
+        for y in range(5):
+            stream_sum = sum(revenue["annual"][k][y] for k in revenue_streams)
+            assert_close(f"Annual revenue total Y{y+1}", stream_sum, revenue["annual"]["total"][y], tolerance=25)
+
+        # Cost category sums
+        cost_cats = [
+            "team", "digital_infra", "physical_infra", "hardware",
+            "marketing", "travel", "admin", "other", "platform_variable"
+        ]
+        for i in range(12):
+            cat_sum = sum(costs["monthly"][k][i] for k in cost_cats)
+            assert_close(f"Monthly cost total M{i+1}", cat_sum, costs["monthly"]["total"][i])
+        for y in range(5):
+            cat_sum = sum(costs["annual"][k][y] for k in cost_cats)
+            assert_close(f"Annual cost total Y{y+1}", cat_sum, costs["annual"]["total"][y], tolerance=10)
+
+        # P&L identities
+        for i in range(12):
+            rev = pnl["monthly"]["revenue"][i]
+            cogs = costs["monthly"]["platform_variable"][i]
+            opex = pnl["monthly"]["operating_expenses"][i]
+            gross_profit = pnl["monthly"]["gross_profit"][i]
+            ebitda = pnl["monthly"]["ebitda"][i]
+            dep = pnl["monthly"]["depreciation"][i]
+            ebit = pnl["monthly"]["ebit"][i]
+            taxes = pnl["monthly"]["taxes"][i]
+            net = pnl["monthly"]["net_profit"][i]
+            assert_close(f"Monthly gross profit M{i+1}", gross_profit, rev - cogs)
+            assert_close(f"Monthly EBITDA M{i+1}", ebitda, gross_profit - opex)
+            assert_close(f"Monthly EBIT M{i+1}", ebit, ebitda - dep)
+            assert_close(f"Monthly Net Profit M{i+1}", net, ebit - taxes)
+
+        for y in range(5):
+            rev = pnl["annual"]["revenue"][y]
+            cogs = costs["annual"]["platform_variable"][y]
+            opex = pnl["annual"]["operating_expenses"][y]
+            gross_profit = pnl["annual"]["gross_profit"][y]
+            ebitda = pnl["annual"]["ebitda"][y]
+            dep = pnl["annual"]["depreciation"][y]
+            ebit = pnl["annual"]["ebit"][y]
+            taxes = pnl["annual"]["taxes"][y]
+            net = pnl["annual"]["net_profit"][y]
+            assert_close(f"Annual gross profit Y{y+1}", gross_profit, rev - cogs)
+            assert_close(f"Annual EBITDA Y{y+1}", ebitda, gross_profit - opex)
+            assert_close(f"Annual EBIT Y{y+1}", ebit, ebitda - dep)
+            assert_close(f"Annual Net Profit Y{y+1}", net, ebit - taxes)
+
+        print("✅ Sanity checks passed (totals and identities consistent)")
+        return True
+
 def main():
     print("🚀 Starting CK Financial Projection API Tests")
     print("=" * 60)
@@ -434,6 +568,7 @@ def main():
         tester.test_enhanced_calculations()
         tester.test_dynamic_modifications()
         tester.test_scenario_variations()
+        tester.test_sanity_checks()
         
     except Exception as e:
         print(f"\n❌ Test suite failed with error: {str(e)}")

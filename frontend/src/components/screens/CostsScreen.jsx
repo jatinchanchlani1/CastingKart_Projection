@@ -49,7 +49,8 @@ const PIE_COLORS = [
   CHART_COLORS.marketing, 
   CHART_COLORS.travel,
   CHART_COLORS.admin, 
-  CHART_COLORS.other
+  CHART_COLORS.other,
+  CHART_COLORS.platformVariable
 ];
 
 export function CostsScreen() {
@@ -83,6 +84,7 @@ export function CostsScreen() {
     'Travel': costs.monthly.travel[idx],
     'Admin': costs.monthly.admin[idx],
     'Other': costs.monthly.other[idx],
+    'Platform Variable': costs.monthly.platform_variable[idx],
     total: costs.monthly.total[idx]
   }));
 
@@ -97,6 +99,7 @@ export function CostsScreen() {
     'Travel': costs.annual.travel[idx],
     'Admin': costs.annual.admin[idx],
     'Other': costs.annual.other[idx],
+    'Platform Variable': costs.annual.platform_variable[idx],
     total: costs.annual.total[idx]
   }));
 
@@ -110,6 +113,7 @@ export function CostsScreen() {
     { name: 'Travel', value: costs.annual.travel[0] },
     { name: 'Admin', value: costs.annual.admin[0] },
     { name: 'Other', value: costs.annual.other[0] },
+    { name: 'Platform Variable', value: costs.annual.platform_variable[0] },
   ].filter(d => d.value > 0);
 
   // Calculate metrics
@@ -171,6 +175,7 @@ export function CostsScreen() {
                   <Area type="monotone" dataKey="Travel" stackId="1" stroke={CHART_COLORS.travel} fill={CHART_COLORS.travel} fillOpacity={0.8} />
                   <Area type="monotone" dataKey="Admin" stackId="1" stroke={CHART_COLORS.admin} fill={CHART_COLORS.admin} fillOpacity={0.8} />
                   <Area type="monotone" dataKey="Other" stackId="1" stroke={CHART_COLORS.other} fill={CHART_COLORS.other} fillOpacity={0.8} />
+                  <Area type="monotone" dataKey="Platform Variable" stackId="1" stroke={CHART_COLORS.platformVariable} fill={CHART_COLORS.platformVariable} fillOpacity={0.8} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -241,6 +246,7 @@ export function CostsScreen() {
                 <Bar dataKey="Travel" stackId="a" fill={CHART_COLORS.travel} />
                 <Bar dataKey="Admin" stackId="a" fill={CHART_COLORS.admin} />
                 <Bar dataKey="Other" stackId="a" fill={CHART_COLORS.other} />
+                <Bar dataKey="Platform Variable" stackId="a" fill={CHART_COLORS.platformVariable} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -263,6 +269,7 @@ export function CostsScreen() {
                     <th className="text-right">Team</th>
                     <th className="text-right">Infra</th>
                     <th className="text-right">Marketing</th>
+                    <th className="text-right">Platform Var</th>
                     <th className="text-right">Other</th>
                     <th className="text-right">Total</th>
                   </tr>
@@ -274,6 +281,7 @@ export function CostsScreen() {
                       <td className="text-right">{formatCurrency(costs.monthly.team[idx], true)}</td>
                       <td className="text-right">{formatCurrency(costs.monthly.digital_infra[idx] + costs.monthly.physical_infra[idx], true)}</td>
                       <td className="text-right">{formatCurrency(costs.monthly.marketing[idx], true)}</td>
+                      <td className="text-right">{formatCurrency(costs.monthly.platform_variable[idx], true)}</td>
                       <td className="text-right">{formatCurrency(costs.monthly.travel[idx] + costs.monthly.admin[idx] + costs.monthly.other[idx] + costs.monthly.hardware[idx], true)}</td>
                       <td className="text-right font-semibold">{formatCurrency(costs.monthly.total[idx], true)}</td>
                     </tr>
@@ -330,6 +338,10 @@ export function CostsScreen() {
                   <tr>
                     <td className="font-medium">Other</td>
                     {costs.annual.other.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
+                  </tr>
+                  <tr>
+                    <td className="font-medium">Platform Variable</td>
+                    {costs.annual.platform_variable.map((v, i) => <td key={i} className="text-right">{formatCurrency(v, true)}</td>)}
                   </tr>
                   <tr className="bg-slate-50">
                     <td className="font-bold">TOTAL</td>

@@ -14,9 +14,14 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+skip_db = os.environ.get("SKIP_DB", "").lower() in {"1", "true", "yes"}
+if skip_db:
+    client = None
+    db = None
+else:
+    mongo_url = os.environ['MONGO_URL']
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
 app = FastAPI(title="CK Financial Master Planner API")
@@ -75,8 +80,41 @@ class TransactionalInputs(BaseModel):
     avg_jobs_per_cd: float = 3.0
     job_boost_price: float = 199.0
     boost_percentage: float = 20.0
-    escrow_fee_percentage: float = 5.0
-    escrow_enabled_year: int = 3
+
+class PlanLimitsInputs(BaseModel):
+    free_boosts_per_cd_per_month: float = 0.0
+    premium_boosts_per_cd_per_month: float = 10.0
+    free_invites_per_cd_per_month: float = 2.0
+    premium_invites_per_cd_per_month: float = 20.0
+    free_auditions_per_cd_per_month: float = 1.0
+    premium_auditions_per_cd_per_month: float = 10.0
+
+class MonetizedActionsInputs(BaseModel):
+    boost_price: float = 99.0
+    invite_credit_price: float = 49.0
+    audition_credit_price: float = 149.0
+    ads_revenue_per_free_user_per_month: float = 5.0
+    ads_revenue_per_premium_user_per_month: float = 2.0
+
+class VolumeAssumptionsInputs(BaseModel):
+    avg_jobs_per_cd_per_month: float = 3.0
+    avg_applications_per_job: float = 30.0
+    boost_rate_free_pct: float = 5.0
+    boost_rate_premium_pct: float = 20.0
+    direct_invites_free_per_cd_per_month: float = 2.0
+    direct_invites_premium_per_cd_per_month: float = 8.0
+    auditions_free_per_cd_per_month: float = 1.0
+    auditions_premium_per_cd_per_month: float = 4.0
+    artist_uploads_per_month: float = 0.2
+    notifications_per_user_per_month: float = 5.0
+
+class UnitCostInputs(BaseModel):
+    payment_processing_pct: float = 2.0
+    ai_tagging_cost_per_upload: float = 2.0
+    ai_search_cost_per_premium_user_per_month: float = 5.0
+    audition_video_cost_per_request: float = 10.0
+    notification_cost_per_message: float = 0.5
+    ad_serving_cost_pct: float = 10.0
 
 # Dynamic Team Member
 class TeamMember(BaseModel):
@@ -218,6 +256,10 @@ class FinancialInputs(BaseModel):
     artist_monetization: ArtistMonetization = Field(default_factory=ArtistMonetization)
     cd_monetization: CDMonetization = Field(default_factory=CDMonetization)
     transactional: TransactionalInputs = Field(default_factory=TransactionalInputs)
+    plan_limits: PlanLimitsInputs = Field(default_factory=PlanLimitsInputs)
+    monetized_actions: MonetizedActionsInputs = Field(default_factory=MonetizedActionsInputs)
+    volume_assumptions: VolumeAssumptionsInputs = Field(default_factory=VolumeAssumptionsInputs)
+    unit_costs: UnitCostInputs = Field(default_factory=UnitCostInputs)
     team_costs: TeamCosts = Field(default_factory=TeamCosts)
     physical_infra: PhysicalInfraCosts = Field(default_factory=PhysicalInfraCosts)
     digital_infra: DigitalInfraCosts = Field(default_factory=DigitalInfraCosts)
@@ -239,6 +281,10 @@ class FinancialInputsCreate(BaseModel):
     artist_monetization: Optional[ArtistMonetization] = None
     cd_monetization: Optional[CDMonetization] = None
     transactional: Optional[TransactionalInputs] = None
+    plan_limits: Optional[PlanLimitsInputs] = None
+    monetized_actions: Optional[MonetizedActionsInputs] = None
+    volume_assumptions: Optional[VolumeAssumptionsInputs] = None
+    unit_costs: Optional[UnitCostInputs] = None
     team_costs: Optional[TeamCosts] = None
     physical_infra: Optional[PhysicalInfraCosts] = None
     digital_infra: Optional[DigitalInfraCosts] = None
@@ -261,6 +307,46 @@ def get_scenario_multiplier(scenario: str) -> Dict[str, float]:
         "aggressive": {"growth": 1.4, "conversion": 1.2, "cost": 0.9}
     }
     return multipliers.get(scenario, multipliers["base"])
+
+def build_monthly_cumulative(annual_targets: List[int]) -> List[int]:
+    """Build monthly cumulative totals across 5 years (60 months)."""
+    monthly = []
+    # Year 1: exponential smoothing
+    for month in range(1, 13):
+        progress = month / 12
+        monthly.append(int(annual_targets[0] * (progress ** 1.5)))
+    # Years 2-5: linear interpolation between year targets
+    for year in range(1, 5):
+        start = annual_targets[year - 1]
+        end = annual_targets[year]
+        for month in range(1, 13):
+            progress = month / 12
+            monthly.append(int(start + (end - start) * progress))
+    return monthly
+
+def calculate_premium_bases(
+    monthly_users: List[int],
+    conversion_rate: float,
+    churn_rate: float,
+    conversion_multiplier: float,
+    revenue_start_month: int
+) -> List[float]:
+    """Estimate monthly premium subscriber base using new signups + churn."""
+    premium_base = 0.0
+    premium_bases = []
+    for idx, total_users in enumerate(monthly_users):
+        month_in_year = (idx % 12) + 1
+        year_idx = idx // 12
+        if year_idx == 0 and month_in_year < revenue_start_month:
+            premium_base = 0.0
+            premium_bases.append(0.0)
+            continue
+        prev_total = monthly_users[idx - 1] if idx > 0 else 0
+        new_users = max(total_users - prev_total, 0)
+        new_premium = new_users * (conversion_rate * conversion_multiplier / 100)
+        premium_base = max(0.0, premium_base * (1 - churn_rate / 100) + new_premium)
+        premium_bases.append(premium_base)
+    return premium_bases
 
 def calculate_monthly_users(inputs: FinancialInputs) -> Dict[str, Any]:
     """Calculate monthly user growth for Year 1 and annual for Years 1-5"""
@@ -285,131 +371,179 @@ def calculate_monthly_users(inputs: FinancialInputs) -> Dict[str, Any]:
         int(ug.cds_y5 * growth_mult)
     ]
     
-    # Monthly breakdown for Year 1 (exponential smoothing)
-    monthly_artists = []
-    monthly_cds = []
-    
-    for month in range(1, 13):
-        progress = month / 12
-        artists = int(artist_targets[0] * (progress ** 1.5))
-        cds = int(cd_targets[0] * (progress ** 1.5))
-        monthly_artists.append(artists)
-        monthly_cds.append(cds)
+    monthly_artists = build_monthly_cumulative(artist_targets)
+    monthly_cds = build_monthly_cumulative(cd_targets)
     
     return {
-        "monthly_artists": monthly_artists,
-        "monthly_cds": monthly_cds,
+        "monthly_artists": monthly_artists[:12],
+        "monthly_cds": monthly_cds[:12],
         "annual_artists": artist_targets,
-        "annual_cds": cd_targets
+        "annual_cds": cd_targets,
+        "monthly_artists_60": monthly_artists,
+        "monthly_cds_60": monthly_cds
     }
 
 def calculate_revenue(inputs: FinancialInputs, users: Dict[str, Any]) -> Dict[str, Any]:
     """Calculate revenue breakdown monthly and annually"""
     am = inputs.artist_monetization
     cm = inputs.cd_monetization
-    tx = inputs.transactional
+    ma = inputs.monetized_actions
+    pl = inputs.plan_limits
+    va = inputs.volume_assumptions
     oi = inputs.other_income
     scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
     conv_mult = scenario_mult["conversion"]
     
     revenue_start = inputs.timeline.revenue_start_month
-    
-    # Monthly revenue for Year 1
-    monthly_revenue = {
+    monthly_artists = users.get("monthly_artists_60") or build_monthly_cumulative(users["annual_artists"])
+    monthly_cds = users.get("monthly_cds_60") or build_monthly_cumulative(users["annual_cds"])
+
+    premium_artists = calculate_premium_bases(
+        monthly_artists, am.conversion_rate, am.churn_rate, conv_mult, revenue_start
+    )
+    premium_cds = calculate_premium_bases(
+        monthly_cds, cm.conversion_rate, cm.churn_rate, conv_mult, revenue_start
+    )
+
+    other_income_monthly = []
+    for idx in range(60):
+        year = idx // 12 + 1
+        month = idx % 12 + 1
+        other_inc = 0
+        for item in oi.items:
+            if item.start_year < year or (item.start_year == year and month >= item.start_month):
+                if item.is_recurring:
+                    other_inc += item.amount
+                elif item.start_year == year and month == item.start_month:
+                    other_inc += item.amount
+        other_income_monthly.append(other_inc)
+
+    revenue_streams = {
         "artist_premium": [],
         "cd_premium": [],
         "boosts": [],
-        "escrow": [],
+        "direct_invites": [],
+        "auditions": [],
+        "ads": [],
         "other_income": [],
         "total": []
     }
-    
-    for month in range(1, 13):
-        # Calculate other income for this month (Year 1)
-        other_inc = 0
-        for item in oi.items:
-            if item.start_year == 1 and month >= item.start_month:
-                if item.is_recurring:
-                    other_inc += item.amount
-                elif month == item.start_month:
-                    other_inc += item.amount
-        
-        if month < revenue_start:
-            monthly_revenue["artist_premium"].append(0)
-            monthly_revenue["cd_premium"].append(0)
-            monthly_revenue["boosts"].append(0)
-            monthly_revenue["escrow"].append(0)
-            monthly_revenue["other_income"].append(other_inc)
-            monthly_revenue["total"].append(other_inc)
-        else:
-            artists = users["monthly_artists"][month - 1]
-            cds = users["monthly_cds"][month - 1]
-            
-            artist_premium = int(artists * (am.conversion_rate * conv_mult / 100) * am.premium_price)
-            cd_premium = int(cds * (cm.conversion_rate * conv_mult / 100) * cm.premium_price)
-            boost_revenue = int(cds * tx.avg_jobs_per_cd * (tx.boost_percentage / 100) * tx.job_boost_price)
-            escrow_rev = 0
-            
-            total = artist_premium + cd_premium + boost_revenue + escrow_rev + other_inc
-            
-            monthly_revenue["artist_premium"].append(artist_premium)
-            monthly_revenue["cd_premium"].append(cd_premium)
-            monthly_revenue["boosts"].append(boost_revenue)
-            monthly_revenue["escrow"].append(escrow_rev)
-            monthly_revenue["other_income"].append(other_inc)
-            monthly_revenue["total"].append(total)
-    
-    # Annual revenue for Years 1-5
-    annual_revenue = {
-        "artist_premium": [],
-        "cd_premium": [],
-        "boosts": [],
-        "escrow": [],
-        "other_income": [],
-        "total": []
+
+    usage = {
+        "total_artists": [],
+        "total_cds": [],
+        "premium_artists": [],
+        "premium_cds": [],
+        "total_users": [],
+        "premium_users": [],
+        "free_users": [],
+        "total_boosts": [],
+        "paid_boosts": [],
+        "total_invites": [],
+        "paid_invites": [],
+        "total_auditions": [],
+        "paid_auditions": [],
+        "artist_uploads": [],
+        "notifications": [],
+        "paid_revenue": [],
+        "ads_revenue": []
     }
-    
-    for year in range(5):
-        artists = users["annual_artists"][year]
-        cds = users["annual_cds"][year]
-        
-        active_months = 12 if year > 0 else (12 - revenue_start + 1)
-        churn_factor = 1 - (am.churn_rate / 100 / 12 * 6)
-        
-        artist_premium = int(artists * (am.conversion_rate * conv_mult / 100) * am.premium_price * active_months * churn_factor)
-        cd_premium = int(cds * (cm.conversion_rate * conv_mult / 100) * cm.premium_price * active_months * (1 - cm.churn_rate / 100 / 12 * 6))
-        boost_revenue = int(cds * tx.avg_jobs_per_cd * (tx.boost_percentage / 100) * tx.job_boost_price * active_months)
-        
-        if year + 1 >= tx.escrow_enabled_year:
-            avg_job_value = 50000
-            escrow_rev = int(cds * tx.avg_jobs_per_cd * avg_job_value * (tx.escrow_fee_percentage / 100) * active_months * 0.3)
-        else:
-            escrow_rev = 0
-        
-        # Calculate other income for this year
-        other_inc = 0
-        for item in oi.items:
-            if item.start_year <= year + 1:
-                if item.is_recurring:
-                    if item.start_year == year + 1:
-                        other_inc += item.amount * (12 - item.start_month + 1)
-                    else:
-                        other_inc += item.amount * 12
-                elif item.start_year == year + 1:
-                    other_inc += item.amount
-        
-        total = artist_premium + cd_premium + boost_revenue + escrow_rev + other_inc
-        
-        annual_revenue["artist_premium"].append(artist_premium)
-        annual_revenue["cd_premium"].append(cd_premium)
-        annual_revenue["boosts"].append(boost_revenue)
-        annual_revenue["escrow"].append(escrow_rev)
-        annual_revenue["other_income"].append(int(other_inc))
-        annual_revenue["total"].append(total)
-    
+
+    for idx in range(60):
+        year_idx = idx // 12
+        month_in_year = idx % 12 + 1
+        total_artists = monthly_artists[idx]
+        total_cds = monthly_cds[idx]
+        prem_artists = premium_artists[idx]
+        prem_cds = premium_cds[idx]
+        free_artists = max(total_artists - prem_artists, 0)
+        free_cds = max(total_cds - prem_cds, 0)
+
+        is_live = not (year_idx == 0 and month_in_year < revenue_start)
+
+        artist_premium_rev = prem_artists * am.premium_price if is_live else 0
+        cd_premium_rev = prem_cds * cm.premium_price if is_live else 0
+
+        total_boosts = (free_cds * va.avg_jobs_per_cd_per_month * (va.boost_rate_free_pct / 100)) + (
+            prem_cds * va.avg_jobs_per_cd_per_month * (va.boost_rate_premium_pct / 100)
+        )
+        included_boosts = (free_cds * pl.free_boosts_per_cd_per_month) + (
+            prem_cds * pl.premium_boosts_per_cd_per_month
+        )
+        paid_boosts = max(total_boosts - included_boosts, 0) if is_live else 0
+        boost_revenue = paid_boosts * ma.boost_price
+
+        total_invites = (free_cds * va.direct_invites_free_per_cd_per_month) + (
+            prem_cds * va.direct_invites_premium_per_cd_per_month
+        )
+        included_invites = (free_cds * pl.free_invites_per_cd_per_month) + (
+            prem_cds * pl.premium_invites_per_cd_per_month
+        )
+        paid_invites = max(total_invites - included_invites, 0) if is_live else 0
+        invite_revenue = paid_invites * ma.invite_credit_price
+
+        total_auditions = (free_cds * va.auditions_free_per_cd_per_month) + (
+            prem_cds * va.auditions_premium_per_cd_per_month
+        )
+        included_auditions = (free_cds * pl.free_auditions_per_cd_per_month) + (
+            prem_cds * pl.premium_auditions_per_cd_per_month
+        )
+        paid_auditions = max(total_auditions - included_auditions, 0) if is_live else 0
+        audition_revenue = paid_auditions * ma.audition_credit_price
+
+        premium_users = prem_artists + prem_cds
+        free_users = free_artists + free_cds
+        ads_revenue = (
+            free_users * ma.ads_revenue_per_free_user_per_month +
+            premium_users * ma.ads_revenue_per_premium_user_per_month
+        ) if is_live else 0
+
+        other_inc = other_income_monthly[idx]
+
+        total = (
+            artist_premium_rev + cd_premium_rev + boost_revenue +
+            invite_revenue + audition_revenue + ads_revenue + other_inc
+        )
+
+        revenue_streams["artist_premium"].append(int(artist_premium_rev))
+        revenue_streams["cd_premium"].append(int(cd_premium_rev))
+        revenue_streams["boosts"].append(int(boost_revenue))
+        revenue_streams["direct_invites"].append(int(invite_revenue))
+        revenue_streams["auditions"].append(int(audition_revenue))
+        revenue_streams["ads"].append(int(ads_revenue))
+        revenue_streams["other_income"].append(int(other_inc))
+        revenue_streams["total"].append(int(total))
+
+        usage["total_artists"].append(total_artists)
+        usage["total_cds"].append(total_cds)
+        usage["premium_artists"].append(prem_artists)
+        usage["premium_cds"].append(prem_cds)
+        usage["total_users"].append(total_artists + total_cds)
+        usage["premium_users"].append(premium_users)
+        usage["free_users"].append(free_users)
+        usage["total_boosts"].append(total_boosts)
+        usage["paid_boosts"].append(paid_boosts)
+        usage["total_invites"].append(total_invites)
+        usage["paid_invites"].append(paid_invites)
+        usage["total_auditions"].append(total_auditions)
+        usage["paid_auditions"].append(paid_auditions)
+        usage["artist_uploads"].append(total_artists * va.artist_uploads_per_month)
+        usage["notifications"].append((total_artists + total_cds) * va.notifications_per_user_per_month)
+        usage["paid_revenue"].append(artist_premium_rev + cd_premium_rev + boost_revenue + invite_revenue + audition_revenue)
+        usage["ads_revenue"].append(ads_revenue)
+
+    def sum_year(series: List[int], year: int) -> int:
+        start = year * 12
+        end = start + 12
+        return int(sum(series[start:end]))
+
+    monthly_revenue = {k: v[:12] for k, v in revenue_streams.items()}
+    annual_revenue = {k: [sum_year(v, year) for year in range(5)] for k, v in revenue_streams.items()}
+
     return {
         "monthly": monthly_revenue,
-        "annual": annual_revenue
+        "annual": annual_revenue,
+        "usage": usage
     }
 
 def calculate_team_costs_detailed(inputs: FinancialInputs, year: int, month: int = None) -> float:
@@ -445,7 +579,7 @@ def calculate_team_costs_detailed(inputs: FinancialInputs, year: int, month: int
     
     return total * inflation_factor * cost_mult
 
-def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
+def calculate_costs(inputs: FinancialInputs, revenue: Dict[str, Any]) -> Dict[str, Any]:
     """Calculate costs breakdown monthly and annually"""
     di = inputs.digital_infra
     pi = inputs.physical_infra
@@ -454,8 +588,35 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
     ac = inputs.admin_costs
     tc = inputs.travel_costs
     oe = inputs.other_expenses
+    uc = inputs.unit_costs
+    usage = revenue.get("usage", {})
     scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
     cost_mult = scenario_mult["cost"]
+
+    usage_len = len(usage.get("paid_revenue", []))
+    if usage_len == 0:
+        usage_len = 60
+    def usage_series(name: str):
+        return usage.get(name, [0] * usage_len)
+
+    platform_variable_60 = []
+    paid_revenue_series = usage_series("paid_revenue")
+    ads_revenue_series = usage_series("ads_revenue")
+    premium_users_series = usage_series("premium_users")
+    total_auditions_series = usage_series("total_auditions")
+    artist_uploads_series = usage_series("artist_uploads")
+    notifications_series = usage_series("notifications")
+
+    for idx in range(usage_len):
+        payment_processing = paid_revenue_series[idx] * (uc.payment_processing_pct / 100)
+        ai_tagging = artist_uploads_series[idx] * uc.ai_tagging_cost_per_upload
+        ai_search = premium_users_series[idx] * uc.ai_search_cost_per_premium_user_per_month
+        audition_video = total_auditions_series[idx] * uc.audition_video_cost_per_request
+        notification_cost = notifications_series[idx] * uc.notification_cost_per_message
+        ad_serving = ads_revenue_series[idx] * (uc.ad_serving_cost_pct / 100)
+        platform_variable_60.append(
+            payment_processing + ai_tagging + ai_search + audition_video + notification_cost + ad_serving
+        )
     
     # Monthly costs for Year 1
     monthly_costs = {
@@ -467,6 +628,7 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
         "travel": [],
         "admin": [],
         "other": [],
+        "platform_variable": [],
         "total": []
     }
     
@@ -516,8 +678,11 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
                 elif month == item.start_month:
                     other += item.amount
         other *= cost_mult
+
+        idx = month - 1
+        platform_variable = platform_variable_60[idx] if idx < len(platform_variable_60) else 0
         
-        total = team + digital + physical + hardware + marketing + travel + admin + other
+        total = team + digital + physical + hardware + marketing + travel + admin + other + platform_variable
         
         monthly_costs["team"].append(int(team))
         monthly_costs["digital_infra"].append(int(digital))
@@ -527,6 +692,7 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
         monthly_costs["travel"].append(int(travel))
         monthly_costs["admin"].append(int(admin))
         monthly_costs["other"].append(int(other))
+        monthly_costs["platform_variable"].append(int(platform_variable))
         monthly_costs["total"].append(int(total))
     
     # Annual costs for Years 1-5
@@ -539,6 +705,7 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
         "travel": [],
         "admin": [],
         "other": [],
+        "platform_variable": [],
         "total": []
     }
     
@@ -603,8 +770,12 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
                 elif item.start_year == year + 1:
                     other += item.amount
         other *= inflation_factor * cost_mult
+
+        start_idx = year * 12
+        end_idx = start_idx + 12
+        platform_variable = sum(platform_variable_60[start_idx:end_idx])
         
-        total = team + digital + physical + hardware + marketing + travel + admin + other
+        total = team + digital + physical + hardware + marketing + travel + admin + other + platform_variable
         
         annual_costs["team"].append(int(team))
         annual_costs["digital_infra"].append(int(digital))
@@ -614,6 +785,7 @@ def calculate_costs(inputs: FinancialInputs) -> Dict[str, Any]:
         annual_costs["travel"].append(int(travel))
         annual_costs["admin"].append(int(admin))
         annual_costs["other"].append(int(other))
+        annual_costs["platform_variable"].append(int(platform_variable))
         annual_costs["total"].append(int(total))
     
     return {
@@ -629,7 +801,7 @@ def calculate_pnl(revenue: Dict, costs: Dict, inputs: FinancialInputs) -> Dict[s
     monthly_pnl = {
         "revenue": revenue["monthly"]["total"],
         "gross_profit": [],
-        "operating_expenses": costs["monthly"]["total"],
+        "operating_expenses": [],
         "ebitda": [],
         "depreciation": [],
         "ebit": [],
@@ -639,17 +811,19 @@ def calculate_pnl(revenue: Dict, costs: Dict, inputs: FinancialInputs) -> Dict[s
     
     for month in range(12):
         rev = revenue["monthly"]["total"][month]
-        opex = costs["monthly"]["total"][month]
-        gross_margin = 0.85
+        total_cost = costs["monthly"]["total"][month]
+        cogs = costs["monthly"].get("platform_variable", [0] * 12)[month]
+        operating_expenses = max(total_cost - cogs, 0)
         
-        gross_profit = int(rev * gross_margin)
-        ebitda = gross_profit - opex
-        depreciation = int(opex * (tax.depreciation_rate / 100 / 12))
+        gross_profit = int(rev - cogs)
+        ebitda = gross_profit - operating_expenses
+        depreciation = int(operating_expenses * (tax.depreciation_rate / 100 / 12))
         ebit = ebitda - depreciation
         taxes = max(0, int(ebit * (tax.corporate_tax_rate / 100))) if ebit > 0 else 0
         net_profit = ebit - taxes
         
         monthly_pnl["gross_profit"].append(gross_profit)
+        monthly_pnl["operating_expenses"].append(int(operating_expenses))
         monthly_pnl["ebitda"].append(ebitda)
         monthly_pnl["depreciation"].append(depreciation)
         monthly_pnl["ebit"].append(ebit)
@@ -660,7 +834,7 @@ def calculate_pnl(revenue: Dict, costs: Dict, inputs: FinancialInputs) -> Dict[s
     annual_pnl = {
         "revenue": revenue["annual"]["total"],
         "gross_profit": [],
-        "operating_expenses": costs["annual"]["total"],
+        "operating_expenses": [],
         "ebitda": [],
         "depreciation": [],
         "ebit": [],
@@ -670,17 +844,19 @@ def calculate_pnl(revenue: Dict, costs: Dict, inputs: FinancialInputs) -> Dict[s
     
     for year in range(5):
         rev = revenue["annual"]["total"][year]
-        opex = costs["annual"]["total"][year]
-        gross_margin = 0.85
+        total_cost = costs["annual"]["total"][year]
+        cogs = costs["annual"].get("platform_variable", [0] * 5)[year]
+        operating_expenses = max(total_cost - cogs, 0)
         
-        gross_profit = int(rev * gross_margin)
-        ebitda = gross_profit - opex
-        depreciation = int(opex * (tax.depreciation_rate / 100))
+        gross_profit = int(rev - cogs)
+        ebitda = gross_profit - operating_expenses
+        depreciation = int(operating_expenses * (tax.depreciation_rate / 100))
         ebit = ebitda - depreciation
         taxes = max(0, int(ebit * (tax.corporate_tax_rate / 100))) if ebit > 0 else 0
         net_profit = ebit - taxes
         
         annual_pnl["gross_profit"].append(gross_profit)
+        annual_pnl["operating_expenses"].append(int(operating_expenses))
         annual_pnl["ebitda"].append(ebitda)
         annual_pnl["depreciation"].append(depreciation)
         annual_pnl["ebit"].append(ebit)
@@ -757,6 +933,8 @@ def calculate_unit_economics(revenue: Dict, users: Dict, costs: Dict, inputs: Fi
     am = inputs.artist_monetization
     cm = inputs.cd_monetization
     scenario_mult = get_scenario_multiplier(inputs.timeline.scenario)
+    conv_mult = scenario_mult["conversion"]
+    usage = revenue.get("usage", {})
     
     metrics = {
         "arpu_artists": [],
@@ -773,12 +951,22 @@ def calculate_unit_economics(revenue: Dict, users: Dict, costs: Dict, inputs: Fi
         total_users = artists + cds
         
         total_rev = revenue["annual"]["total"][year]
-        total_cost = costs["annual"]["total"][year]
+        total_cogs = costs["annual"].get("platform_variable", [0] * 5)[year]
         
-        arpu_artists = revenue["annual"]["artist_premium"][year] / max(artists * (am.conversion_rate / 100), 1)
-        arpu_cds = (revenue["annual"]["cd_premium"][year] + revenue["annual"]["boosts"][year]) / max(cds, 1)
+        start_idx = year * 12
+        end_idx = start_idx + 12
+        avg_premium_artists = sum(usage.get("premium_artists", [0] * 60)[start_idx:end_idx]) / 12
+        avg_premium_cds = sum(usage.get("premium_cds", [0] * 60)[start_idx:end_idx]) / 12
         
-        gross_margin = (total_rev * 0.85) / max(total_users, 1)
+        arpu_artists = revenue["annual"]["artist_premium"][year] / max(avg_premium_artists, 1)
+        arpu_cds = (
+            revenue["annual"]["cd_premium"][year] +
+            revenue["annual"]["boosts"][year] +
+            revenue["annual"]["direct_invites"][year] +
+            revenue["annual"]["auditions"][year]
+        ) / max(avg_premium_cds, 1)
+        
+        gross_margin = (total_rev - total_cogs) / max(total_users, 1)
         variable_costs = costs["annual"]["marketing"][year] / max(total_users, 1)
         contribution_margin = gross_margin - variable_costs
         
@@ -794,9 +982,9 @@ def calculate_unit_economics(revenue: Dict, users: Dict, costs: Dict, inputs: Fi
         month_in_year = month % 12
         
         if year_idx == 0:
-            monthly_profit = revenue["monthly"]["total"][month_in_year] * 0.85 - costs["monthly"]["total"][month_in_year]
+            monthly_profit = revenue["monthly"]["total"][month_in_year] - costs["monthly"]["total"][month_in_year]
         else:
-            monthly_profit = (revenue["annual"]["total"][year_idx] * 0.85 - costs["annual"]["total"][year_idx]) / 12
+            monthly_profit = (revenue["annual"]["total"][year_idx] - costs["annual"]["total"][year_idx]) / 12
         
         cumulative_profit += monthly_profit
         
@@ -835,7 +1023,8 @@ def calculate_key_metrics(revenue: Dict, costs: Dict, pnl: Dict, inputs: Financi
         cost = costs["annual"]["total"][year]
         ebitda = pnl["annual"]["ebitda"][year]
         
-        gross_margin = round((rev * 0.85 / rev) * 100, 1)
+        gross_profit = pnl["annual"]["gross_profit"][year]
+        gross_margin = round((gross_profit / rev) * 100, 1)
         ebitda_margin = round((ebitda / rev) * 100, 1)
         
         if year > 0:
@@ -863,6 +1052,74 @@ def calculate_key_metrics(revenue: Dict, costs: Dict, pnl: Dict, inputs: Financi
     
     return metrics
 
+def calculate_investor_summary(
+    revenue: Dict,
+    costs: Dict,
+    pnl: Dict,
+    cashflow: Dict,
+    users: Dict,
+    unit_economics: Dict,
+    key_metrics: Dict,
+    inputs: FinancialInputs
+) -> Dict[str, Any]:
+    """Calculate investor summary metrics"""
+    y1_revenue = revenue["annual"]["total"][0]
+    y5_revenue = revenue["annual"]["total"][4]
+    y1_gross_profit = pnl["annual"]["gross_profit"][0]
+    y1_ebitda = pnl["annual"]["ebitda"][0]
+    y1_net = pnl["annual"]["net_profit"][0]
+    y1_gm_pct = round((y1_gross_profit / max(y1_revenue, 1)) * 100, 1)
+    y1_ebitda_margin = round((y1_ebitda / max(y1_revenue, 1)) * 100, 1)
+    y1_net_margin = round((y1_net / max(y1_revenue, 1)) * 100, 1)
+
+    mrr_y1_avg = round(y1_revenue / 12, 0)
+    mrr_y5_avg = round(y5_revenue / 12, 0)
+    arr_y1 = y1_revenue
+    arr_y5 = y5_revenue
+
+    usage = revenue.get("usage", {})
+    premium_users_y1_avg = sum(usage.get("premium_users", [0] * 60)[:12]) / 12 or 0
+    premium_users_y1_end = usage.get("premium_users", [0] * 12)[11] if usage.get("premium_users") else 0
+    new_premium_y1 = max(premium_users_y1_end, 0)
+
+    marketing_y1 = costs["annual"]["marketing"][0]
+    cac_y1 = marketing_y1 / max(new_premium_y1, 1)
+
+    gross_profit_per_premium_month = (y1_gross_profit / max(premium_users_y1_avg, 1)) / 12
+    payback_months = round(cac_y1 / max(gross_profit_per_premium_month, 1), 1)
+
+    artist_arpu_annual = unit_economics["arpu_artists"][0]
+    cd_arpu_annual = unit_economics["arpu_cds"][0]
+    artist_arpu_month = artist_arpu_annual / 12
+    cd_arpu_month = cd_arpu_annual / 12
+
+    artist_churn = inputs.artist_monetization.churn_rate / 100
+    cd_churn = inputs.cd_monetization.churn_rate / 100
+    gross_margin_ratio = y1_gm_pct / 100
+
+    artist_ltv = (artist_arpu_month * gross_margin_ratio) / max(artist_churn, 0.001)
+    cd_ltv = (cd_arpu_month * gross_margin_ratio) / max(cd_churn, 0.001)
+
+    runway_months = cashflow["monthly"]["runway_months"][-1] if cashflow["monthly"]["runway_months"] else 0
+
+    return {
+        "y1_revenue": int(arr_y1),
+        "y5_revenue": int(arr_y5),
+        "mrr_y1_avg": int(mrr_y1_avg),
+        "mrr_y5_avg": int(mrr_y5_avg),
+        "gross_margin_pct_y1": y1_gm_pct,
+        "ebitda_margin_pct_y1": y1_ebitda_margin,
+        "net_margin_pct_y1": y1_net_margin,
+        "revenue_cagr": key_metrics["revenue_cagr"],
+        "burn_multiple_y1": key_metrics["burn_multiple"][0],
+        "rule_of_40_y5": key_metrics["rule_of_40"][4],
+        "runway_months": runway_months,
+        "cac_y1": int(cac_y1),
+        "payback_months": payback_months,
+        "ltv_artist": int(artist_ltv),
+        "ltv_cd": int(cd_ltv),
+    }
+
 def calculate_all_scenarios(base_inputs: FinancialInputs) -> Dict[str, Any]:
     """Calculate projections for all three scenarios"""
     scenarios = {}
@@ -873,7 +1130,7 @@ def calculate_all_scenarios(base_inputs: FinancialInputs) -> Dict[str, Any]:
         
         users = calculate_monthly_users(scenario_inputs)
         revenue = calculate_revenue(scenario_inputs, users)
-        costs = calculate_costs(scenario_inputs)
+        costs = calculate_costs(scenario_inputs, revenue)
         pnl = calculate_pnl(revenue, costs, scenario_inputs)
         cashflow = calculate_cashflow(pnl, scenario_inputs)
         
@@ -904,6 +1161,8 @@ async def get_default_inputs():
 @api_router.post("/inputs", response_model=FinancialInputs)
 async def save_inputs(inputs: FinancialInputsCreate):
     """Save financial inputs to database"""
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not configured")
     input_obj = FinancialInputs(
         name=inputs.name or "CK Financial Plan",
         timeline=inputs.timeline or TimelineInputs(),
@@ -911,6 +1170,10 @@ async def save_inputs(inputs: FinancialInputsCreate):
         artist_monetization=inputs.artist_monetization or ArtistMonetization(),
         cd_monetization=inputs.cd_monetization or CDMonetization(),
         transactional=inputs.transactional or TransactionalInputs(),
+        plan_limits=inputs.plan_limits or PlanLimitsInputs(),
+        monetized_actions=inputs.monetized_actions or MonetizedActionsInputs(),
+        volume_assumptions=inputs.volume_assumptions or VolumeAssumptionsInputs(),
+        unit_costs=inputs.unit_costs or UnitCostInputs(),
         team_costs=inputs.team_costs or TeamCosts(),
         physical_infra=inputs.physical_infra or PhysicalInfraCosts(),
         digital_infra=inputs.digital_infra or DigitalInfraCosts(),
@@ -932,12 +1195,16 @@ async def save_inputs(inputs: FinancialInputsCreate):
 @api_router.get("/inputs", response_model=List[FinancialInputs])
 async def get_all_inputs():
     """Get all saved financial inputs"""
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not configured")
     inputs = await db.financial_inputs.find({}, {"_id": 0}).to_list(100)
     return inputs
 
 @api_router.get("/inputs/{input_id}", response_model=FinancialInputs)
 async def get_input(input_id: str):
     """Get specific financial input by ID"""
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not configured")
     doc = await db.financial_inputs.find_one({"id": input_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Input not found")
@@ -948,11 +1215,12 @@ async def calculate_projections(inputs: FinancialInputs):
     """Calculate all financial projections based on inputs"""
     users = calculate_monthly_users(inputs)
     revenue = calculate_revenue(inputs, users)
-    costs = calculate_costs(inputs)
+    costs = calculate_costs(inputs, revenue)
     pnl = calculate_pnl(revenue, costs, inputs)
     cashflow = calculate_cashflow(pnl, inputs)
     unit_economics = calculate_unit_economics(revenue, users, costs, inputs)
     key_metrics = calculate_key_metrics(revenue, costs, pnl, inputs)
+    investor_summary = calculate_investor_summary(revenue, costs, pnl, cashflow, users, unit_economics, key_metrics, inputs)
     scenarios = calculate_all_scenarios(inputs)
     
     return {
@@ -963,6 +1231,7 @@ async def calculate_projections(inputs: FinancialInputs):
         "cashflow": cashflow,
         "unit_economics": unit_economics,
         "key_metrics": key_metrics,
+        "investor_summary": investor_summary,
         "scenarios": scenarios
     }
 
@@ -976,7 +1245,9 @@ async def calculate_revenue_only(inputs: FinancialInputs):
 @api_router.post("/calculate/costs")
 async def calculate_costs_only(inputs: FinancialInputs):
     """Calculate cost projections"""
-    costs = calculate_costs(inputs)
+    users = calculate_monthly_users(inputs)
+    revenue = calculate_revenue(inputs, users)
+    costs = calculate_costs(inputs, revenue)
     return {"costs": costs}
 
 @api_router.post("/calculate/scenarios")
@@ -998,4 +1269,5 @@ app.add_middleware(
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    if client is not None:
+        client.close()

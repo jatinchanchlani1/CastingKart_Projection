@@ -100,8 +100,6 @@ export function PnLScreen() {
   const y1NetProfit = pnl.annual.net_profit[0];
   const y5EBITDA = pnl.annual.ebitda[4];
   const ebitdaMarginY1 = y1Revenue > 0 ? ((y1EBITDA / y1Revenue) * 100).toFixed(1) : 0;
-  const grossMargin = 85; // Fixed 85% gross margin for marketplace
-
   // Find breakeven year
   const breakevenYear = pnl.annual.net_profit.findIndex(np => np > 0);
 

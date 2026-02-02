@@ -80,7 +80,9 @@ export const CHART_COLORS = {
   artistPremium: '#0F172A',
   cdPremium: '#3B82F6',
   boosts: '#8B5CF6',
-  escrow: '#10B981',
+  directInvites: '#14B8A6',
+  auditions: '#F97316',
+  ads: '#EAB308',
   otherIncome: '#F59E0B',
   team: '#0F172A',
   digitalInfra: '#3B82F6',
@@ -90,6 +92,7 @@ export const CHART_COLORS = {
   travel: '#14B8A6',
   admin: '#F59E0B',
   other: '#64748B',
+  platformVariable: '#0EA5E9',
 };
 
 // Scenario colors
@@ -132,9 +135,42 @@ export const DEFAULT_INPUTS = {
   transactional: {
     avg_jobs_per_cd: 3.0,
     job_boost_price: 199,
-    boost_percentage: 20.0,
-    escrow_fee_percentage: 5.0,
-    escrow_enabled_year: 3
+    boost_percentage: 20.0
+  },
+  plan_limits: {
+    free_boosts_per_cd_per_month: 0,
+    premium_boosts_per_cd_per_month: 10,
+    free_invites_per_cd_per_month: 2,
+    premium_invites_per_cd_per_month: 20,
+    free_auditions_per_cd_per_month: 1,
+    premium_auditions_per_cd_per_month: 10
+  },
+  monetized_actions: {
+    boost_price: 99,
+    invite_credit_price: 49,
+    audition_credit_price: 149,
+    ads_revenue_per_free_user_per_month: 5,
+    ads_revenue_per_premium_user_per_month: 2
+  },
+  volume_assumptions: {
+    avg_jobs_per_cd_per_month: 3.0,
+    avg_applications_per_job: 30,
+    boost_rate_free_pct: 5.0,
+    boost_rate_premium_pct: 20.0,
+    direct_invites_free_per_cd_per_month: 2.0,
+    direct_invites_premium_per_cd_per_month: 8.0,
+    auditions_free_per_cd_per_month: 1.0,
+    auditions_premium_per_cd_per_month: 4.0,
+    artist_uploads_per_month: 0.2,
+    notifications_per_user_per_month: 5.0
+  },
+  unit_costs: {
+    payment_processing_pct: 2.0,
+    ai_tagging_cost_per_upload: 2.0,
+    ai_search_cost_per_premium_user_per_month: 5.0,
+    audition_video_cost_per_request: 10.0,
+    notification_cost_per_message: 0.5,
+    ad_serving_cost_pct: 10.0
   },
   team_costs: {
     members: [

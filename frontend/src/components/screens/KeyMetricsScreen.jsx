@@ -74,7 +74,7 @@ export function KeyMetricsScreen() {
     );
   }
 
-  const { key_metrics, revenue, pnl } = projections;
+  const { key_metrics, investor_summary } = projections;
 
   // Prepare chart data
   const marginData = YEARS.map((year, idx) => ({
@@ -106,6 +106,8 @@ export function KeyMetricsScreen() {
   const burnMultipleY1 = key_metrics.burn_multiple[0];
   const burnStatus = burnMultipleY1 < 2 ? 'good' : burnMultipleY1 < 5 ? 'warning' : 'bad';
 
+  const investor = investor_summary || {};
+
   return (
     <div className="space-y-6" data-testid="metrics-screen">
       {/* Top KPIs */}
@@ -133,6 +135,58 @@ export function KeyMetricsScreen() {
           value={burnMultipleY1.toFixed(2)}
           sublabel="Net burn / Net new ARR"
           status={burnStatus}
+        />
+      </div>
+
+      {/* Investor Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard 
+          label="Y1 ARR"
+          value={formatCurrency(investor.y1_revenue || 0, true)}
+          sublabel="Annual recurring revenue"
+          status="neutral"
+        />
+        <MetricCard 
+          label="Y5 ARR"
+          value={formatCurrency(investor.y5_revenue || 0, true)}
+          sublabel="Projected annual run-rate"
+          status="neutral"
+        />
+        <MetricCard 
+          label="Avg MRR (Y1)"
+          value={formatCurrency(investor.mrr_y1_avg || 0, true)}
+          sublabel="Average monthly revenue"
+          status="neutral"
+        />
+        <MetricCard 
+          label="Gross Margin (Y1)"
+          value={`${investor.gross_margin_pct_y1 || 0}%`}
+          sublabel="Revenue minus platform COGS"
+          status="neutral"
+        />
+        <MetricCard 
+          label="EBITDA Margin (Y1)"
+          value={`${investor.ebitda_margin_pct_y1 || 0}%`}
+          sublabel="Operating profitability"
+          status="neutral"
+        />
+        <MetricCard 
+          label="CAC (Y1)"
+          value={formatCurrency(investor.cac_y1 || 0, true)}
+          sublabel="Marketing / new premium"
+          status="neutral"
+        />
+        <MetricCard 
+          label="Payback (Months)"
+          value={investor.payback_months || 0}
+          sublabel="CAC payback period"
+          status="neutral"
+        />
+        <MetricCard 
+          label="Runway (Months)"
+          value={investor.runway_months || 0}
+          sublabel="From current burn"
+          status="neutral"
         />
       </div>
 

@@ -96,7 +96,9 @@ export function useExcelExport() {
       { name: 'Artist Premium', data: projections.revenue.annual.artist_premium },
       { name: 'CD Premium', data: projections.revenue.annual.cd_premium },
       { name: 'Boosts', data: projections.revenue.annual.boosts },
-      { name: 'Escrow', data: projections.revenue.annual.escrow },
+      { name: 'Direct Invites', data: projections.revenue.annual.direct_invites },
+      { name: 'Auditions', data: projections.revenue.annual.auditions },
+      { name: 'Ads', data: projections.revenue.annual.ads },
       { name: 'Other Income', data: projections.revenue.annual.other_income },
     ];
     
@@ -127,6 +129,44 @@ export function useExcelExport() {
     const revenueSheet = XLSX.utils.aoa_to_sheet(revenueChartData);
     revenueSheet['!cols'] = [{ wch: 15 }, { wch: 45 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(workbook, revenueSheet, 'Revenue Charts');
+
+    // ===== Sheet 2: Investor Summary =====
+    const investor = projections.investor_summary || {};
+    const investorSummary = [
+      ['═══════════════════════════════════════════════════════════════════════════════'],
+      ['                          INVESTOR SUMMARY                                     '],
+      ['═══════════════════════════════════════════════════════════════════════════════'],
+      [''],
+      ['Topline'],
+      ['Y1 Revenue (ARR)', formatCurrency(investor.y1_revenue || 0, true)],
+      ['Y5 Revenue (ARR)', formatCurrency(investor.y5_revenue || 0, true)],
+      ['Y1 Avg MRR', formatCurrency(investor.mrr_y1_avg || 0, true)],
+      ['Y5 Avg MRR', formatCurrency(investor.mrr_y5_avg || 0, true)],
+      ['Revenue CAGR', `${investor.revenue_cagr || 0}%`],
+      [''],
+      ['Profitability'],
+      ['Gross Margin % (Y1)', `${investor.gross_margin_pct_y1 || 0}%`],
+      ['EBITDA Margin % (Y1)', `${investor.ebitda_margin_pct_y1 || 0}%`],
+      ['Net Margin % (Y1)', `${investor.net_margin_pct_y1 || 0}%`],
+      ['Rule of 40 (Y5)', investor.rule_of_40_y5 !== undefined ? investor.rule_of_40_y5.toFixed(1) : '0.0'],
+      ['Burn Multiple (Y1)', investor.burn_multiple_y1 !== undefined ? investor.burn_multiple_y1.toFixed(2) : '0.00'],
+      [''],
+      ['Efficiency & Payback'],
+      ['CAC (Y1)', formatCurrency(investor.cac_y1 || 0, true)],
+      ['Payback (Months)', investor.payback_months !== undefined ? investor.payback_months : 0],
+      ['Runway (Months)', investor.runway_months !== undefined ? investor.runway_months : 0],
+      [''],
+      ['Unit Economics'],
+      ['LTV - Artist', formatCurrency(investor.ltv_artist || 0, true)],
+      ['LTV - CD', formatCurrency(investor.ltv_cd || 0, true)],
+      [''],
+      ['Notes'],
+      ['LTV uses gross margin and monthly churn. CAC uses Y1 marketing spend / new premium users.'],
+    ];
+
+    const investorSheet = XLSX.utils.aoa_to_sheet(investorSummary);
+    investorSheet['!cols'] = [{ wch: 30 }, { wch: 22 }];
+    XLSX.utils.book_append_sheet(workbook, investorSheet, 'Investor Summary');
 
     // ===== Sheet 3: Cost Charts & Data =====
     const costChartData = [
@@ -163,6 +203,7 @@ export function useExcelExport() {
       { name: 'Travel', value: projections.costs.annual.travel[0] },
       { name: 'Admin', value: projections.costs.annual.admin[0] },
       { name: 'Other', value: projections.costs.annual.other[0] },
+      { name: 'Platform Variable', value: projections.costs.annual.platform_variable[0] },
     ].filter(c => c.value > 0);
     
     costChartData.push(['Category', 'Visual', 'Amount', '% Share']);
@@ -185,6 +226,7 @@ export function useExcelExport() {
     costChartData.push(['Travel', ...projections.costs.annual.travel]);
     costChartData.push(['Admin', ...projections.costs.annual.admin]);
     costChartData.push(['Other', ...projections.costs.annual.other]);
+    costChartData.push(['Platform Variable', ...projections.costs.annual.platform_variable]);
     costChartData.push(['TOTAL', ...projections.costs.annual.total]);
     
     const costSheet = XLSX.utils.aoa_to_sheet(costChartData);
@@ -230,7 +272,7 @@ export function useExcelExport() {
     pnlChartData.push(['─────────────────────────────────────────────────────────────────────────────────']);
     pnlChartData.push(['Line Item', ...YEARS]);
     pnlChartData.push(['Revenue', ...projections.pnl.annual.revenue]);
-    pnlChartData.push(['Gross Profit (85%)', ...projections.pnl.annual.gross_profit]);
+    pnlChartData.push(['Gross Profit', ...projections.pnl.annual.gross_profit]);
     pnlChartData.push(['Operating Expenses', ...projections.pnl.annual.operating_expenses]);
     pnlChartData.push(['─────────────', '', '', '', '', '']);
     pnlChartData.push(['EBITDA', ...projections.pnl.annual.ebitda]);

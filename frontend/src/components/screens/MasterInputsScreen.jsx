@@ -494,16 +494,158 @@ export function MasterInputsScreen() {
               </InputField>
             </div>
             
-            <Label className="text-sm font-semibold text-slate-700">Transactional</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <InputField label="Avg Jobs/CD/Month">
-                <NumberInput value={inputs.transactional.avg_jobs_per_cd} onChange={(v) => updateInputs('transactional', 'avg_jobs_per_cd', v)} step={0.5} />
+          </CardContent>
+        </Card>
+
+        {/* Plans & Limits */}
+        <Card className="input-section border-slate-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="input-section-title">
+              <DollarSign className="w-5 h-5 text-slate-600" />
+              Plans & Limits (Per CD/Month)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Label className="text-sm font-semibold text-slate-700">Free Tier Limits</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <InputField label="Free Boosts">
+                <NumberInput value={inputs.plan_limits.free_boosts_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'free_boosts_per_cd_per_month', v)} />
               </InputField>
-              <InputField label="Boost Price">
-                <NumberInput value={inputs.transactional.job_boost_price} onChange={(v) => updateInputs('transactional', 'job_boost_price', v)} prefix="₹" />
+              <InputField label="Free Invites">
+                <NumberInput value={inputs.plan_limits.free_invites_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'free_invites_per_cd_per_month', v)} />
+              </InputField>
+              <InputField label="Free Auditions">
+                <NumberInput value={inputs.plan_limits.free_auditions_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'free_auditions_per_cd_per_month', v)} />
               </InputField>
             </div>
-            <SliderInput label="% Jobs Boosted" value={inputs.transactional.boost_percentage} onChange={(v) => updateInputs('transactional', 'boost_percentage', v)} min={0} max={100} step={5} />
+
+            <Label className="text-sm font-semibold text-slate-700">Premium Tier Limits</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <InputField label="Premium Boosts">
+                <NumberInput value={inputs.plan_limits.premium_boosts_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'premium_boosts_per_cd_per_month', v)} />
+              </InputField>
+              <InputField label="Premium Invites">
+                <NumberInput value={inputs.plan_limits.premium_invites_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'premium_invites_per_cd_per_month', v)} />
+              </InputField>
+              <InputField label="Premium Auditions">
+                <NumberInput value={inputs.plan_limits.premium_auditions_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'premium_auditions_per_cd_per_month', v)} />
+              </InputField>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Monetized Actions */}
+        <Card className="input-section border-slate-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="input-section-title">
+              <TrendingUp className="w-5 h-5 text-slate-600" />
+              Monetized Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <InputField label="Boost Price">
+                <NumberInput value={inputs.monetized_actions.boost_price} onChange={(v) => updateInputs('monetized_actions', 'boost_price', v)} prefix="₹" />
+              </InputField>
+              <InputField label="Invite Credit Price">
+                <NumberInput value={inputs.monetized_actions.invite_credit_price} onChange={(v) => updateInputs('monetized_actions', 'invite_credit_price', v)} prefix="₹" />
+              </InputField>
+              <InputField label="Audition Credit Price">
+                <NumberInput value={inputs.monetized_actions.audition_credit_price} onChange={(v) => updateInputs('monetized_actions', 'audition_credit_price', v)} prefix="₹" />
+              </InputField>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <InputField label="Ads Revenue/Free User/Month">
+                <NumberInput value={inputs.monetized_actions.ads_revenue_per_free_user_per_month} onChange={(v) => updateInputs('monetized_actions', 'ads_revenue_per_free_user_per_month', v)} prefix="₹" step={0.5} />
+              </InputField>
+              <InputField label="Ads Revenue/Premium User/Month">
+                <NumberInput value={inputs.monetized_actions.ads_revenue_per_premium_user_per_month} onChange={(v) => updateInputs('monetized_actions', 'ads_revenue_per_premium_user_per_month', v)} prefix="₹" step={0.5} />
+              </InputField>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Volume Assumptions */}
+        <Card className="input-section border-slate-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="input-section-title">
+              <Users className="w-5 h-5 text-slate-600" />
+              Volume Assumptions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <InputField label="Jobs/CD/Month">
+                <NumberInput value={inputs.volume_assumptions.avg_jobs_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'avg_jobs_per_cd_per_month', v)} step={0.5} />
+              </InputField>
+              <InputField label="Applications/Job">
+                <NumberInput value={inputs.volume_assumptions.avg_applications_per_job} onChange={(v) => updateInputs('volume_assumptions', 'avg_applications_per_job', v)} />
+              </InputField>
+              <InputField label="Artist Uploads/Month">
+                <NumberInput value={inputs.volume_assumptions.artist_uploads_per_month} onChange={(v) => updateInputs('volume_assumptions', 'artist_uploads_per_month', v)} step={0.05} />
+              </InputField>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <InputField label="Boost Rate (Free %)">
+                <NumberInput value={inputs.volume_assumptions.boost_rate_free_pct} onChange={(v) => updateInputs('volume_assumptions', 'boost_rate_free_pct', v)} suffix="%" step={1} />
+              </InputField>
+              <InputField label="Boost Rate (Premium %)">
+                <NumberInput value={inputs.volume_assumptions.boost_rate_premium_pct} onChange={(v) => updateInputs('volume_assumptions', 'boost_rate_premium_pct', v)} suffix="%" step={1} />
+              </InputField>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <InputField label="Invites/CD/Month (Free)">
+                <NumberInput value={inputs.volume_assumptions.direct_invites_free_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'direct_invites_free_per_cd_per_month', v)} step={0.5} />
+              </InputField>
+              <InputField label="Invites/CD/Month (Premium)">
+                <NumberInput value={inputs.volume_assumptions.direct_invites_premium_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'direct_invites_premium_per_cd_per_month', v)} step={0.5} />
+              </InputField>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <InputField label="Auditions/CD/Month (Free)">
+                <NumberInput value={inputs.volume_assumptions.auditions_free_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'auditions_free_per_cd_per_month', v)} step={0.5} />
+              </InputField>
+              <InputField label="Auditions/CD/Month (Premium)">
+                <NumberInput value={inputs.volume_assumptions.auditions_premium_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'auditions_premium_per_cd_per_month', v)} step={0.5} />
+              </InputField>
+            </div>
+            <InputField label="Notifications/User/Month">
+              <NumberInput value={inputs.volume_assumptions.notifications_per_user_per_month} onChange={(v) => updateInputs('volume_assumptions', 'notifications_per_user_per_month', v)} step={0.5} />
+            </InputField>
+          </CardContent>
+        </Card>
+
+        {/* Unit Costs */}
+        <Card className="input-section border-slate-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="input-section-title">
+              <FileCheck className="w-5 h-5 text-slate-600" />
+              Unit Costs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <InputField label="Payment Processing %">
+                <NumberInput value={inputs.unit_costs.payment_processing_pct} onChange={(v) => updateInputs('unit_costs', 'payment_processing_pct', v)} suffix="%" step={0.1} />
+              </InputField>
+              <InputField label="AI Tagging/Upload">
+                <NumberInput value={inputs.unit_costs.ai_tagging_cost_per_upload} onChange={(v) => updateInputs('unit_costs', 'ai_tagging_cost_per_upload', v)} prefix="₹" step={0.5} />
+              </InputField>
+              <InputField label="AI Search/Premium User/Month">
+                <NumberInput value={inputs.unit_costs.ai_search_cost_per_premium_user_per_month} onChange={(v) => updateInputs('unit_costs', 'ai_search_cost_per_premium_user_per_month', v)} prefix="₹" step={0.5} />
+              </InputField>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <InputField label="Audition Video/Request">
+                <NumberInput value={inputs.unit_costs.audition_video_cost_per_request} onChange={(v) => updateInputs('unit_costs', 'audition_video_cost_per_request', v)} prefix="₹" step={0.5} />
+              </InputField>
+              <InputField label="Notification Cost/Message">
+                <NumberInput value={inputs.unit_costs.notification_cost_per_message} onChange={(v) => updateInputs('unit_costs', 'notification_cost_per_message', v)} prefix="₹" step={0.1} />
+              </InputField>
+              <InputField label="Ad Serving Cost %">
+                <NumberInput value={inputs.unit_costs.ad_serving_cost_pct} onChange={(v) => updateInputs('unit_costs', 'ad_serving_cost_pct', v)} suffix="%" step={0.5} />
+              </InputField>
+            </div>
           </CardContent>
         </Card>
 
