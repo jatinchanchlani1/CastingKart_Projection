@@ -208,7 +208,9 @@ export const DEFAULT_INPUTS = {
   marketing_costs: {
     organic: 10000,
     paid: 20000,
-    influencer: 15000
+    influencer: 15000,
+    ramp_months_y1: 6,
+    annual_scale_pct: 50.0
   },
   admin_costs: {
     legal: 10000,
@@ -240,9 +242,6 @@ export const DEFAULT_INPUTS = {
     depreciation_rate: 15.0
   },
   funding: {
-    rounds: [
-      { id: generateId(), name: "Seed Round", amount: 5000000, month: 1, year: 1, investor: "Angel Investors", notes: "Initial capital" },
-      { id: generateId(), name: "Series A", amount: 25000000, month: 1, year: 3, investor: "VC Fund", notes: "Growth funding" },
-    ]
+    rounds: []
   }
 };

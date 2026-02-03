@@ -553,6 +553,72 @@ class FinancialPlannerAPITester:
         print("✅ Sanity checks passed (totals and identities consistent)")
         return True
 
+    def test_zeroed_inputs(self):
+        """Ensure zeroed inputs produce zeroed outputs for related categories."""
+        print("\n=== Zeroed Inputs Checks ===")
+        inputs = FinancialInputs()
+
+        # Zero revenue drivers
+        inputs.artist_monetization.premium_price = 0
+        inputs.artist_monetization.conversion_rate = 0
+        inputs.cd_monetization.premium_price = 0
+        inputs.cd_monetization.conversion_rate = 0
+        inputs.monetized_actions.boost_price = 0
+        inputs.monetized_actions.invite_credit_price = 0
+        inputs.monetized_actions.audition_credit_price = 0
+        inputs.monetized_actions.ads_revenue_per_free_user_per_month = 0
+        inputs.monetized_actions.ads_revenue_per_premium_user_per_month = 0
+        inputs.other_income.items = []
+
+        # Zero costs
+        inputs.team_costs.members = []
+        inputs.team_costs.esop_percentage = 0
+        inputs.physical_infra.office_rent = 0
+        inputs.physical_infra.electricity = 0
+        inputs.physical_infra.internet = 0
+        inputs.physical_infra.maintenance = 0
+        inputs.digital_infra.hosting = 0
+        inputs.digital_infra.storage = 0
+        inputs.digital_infra.ai_compute_enabled = 0
+        inputs.digital_infra.saas_tools = 0
+        inputs.hardware_costs.items = []
+        inputs.marketing_costs.organic = 0
+        inputs.marketing_costs.paid = 0
+        inputs.marketing_costs.influencer = 0
+        inputs.travel_costs.items = []
+        inputs.admin_costs.legal = 0
+        inputs.admin_costs.compliance = 0
+        inputs.admin_costs.accounting = 0
+        inputs.admin_costs.misc_buffer_percentage = 0
+        inputs.other_expenses.items = []
+        inputs.funding.rounds = []
+        inputs.unit_costs.payment_processing_pct = 0
+        inputs.unit_costs.ai_tagging_cost_per_upload = 0
+        inputs.unit_costs.ai_search_cost_per_premium_user_per_month = 0
+        inputs.unit_costs.audition_video_cost_per_request = 0
+        inputs.unit_costs.notification_cost_per_message = 0
+        inputs.unit_costs.ad_serving_cost_pct = 0
+
+        users = calculate_monthly_users(inputs)
+        revenue = calculate_revenue(inputs, users)
+        costs = calculate_costs(inputs, revenue)
+
+        # Revenue should be zero
+        if any(v != 0 for v in revenue["annual"]["total"]):
+            raise AssertionError("Zeroed revenue inputs did not produce zero revenue totals")
+
+        # Cost categories should be zero
+        cost_categories = [
+            "team", "digital_infra", "physical_infra", "hardware",
+            "marketing", "travel", "admin", "other", "platform_variable"
+        ]
+        for cat in cost_categories:
+            if any(v != 0 for v in costs["annual"][cat]):
+                raise AssertionError(f"Zeroed inputs did not produce zero costs for {cat}")
+
+        print("✅ Zeroed inputs behave correctly")
+        return True
+
 def main():
     print("🚀 Starting CK Financial Projection API Tests")
     print("=" * 60)
@@ -569,6 +635,7 @@ def main():
         tester.test_dynamic_modifications()
         tester.test_scenario_variations()
         tester.test_sanity_checks()
+        tester.test_zeroed_inputs()
         
     except Exception as e:
         print(f"\n❌ Test suite failed with error: {str(e)}")

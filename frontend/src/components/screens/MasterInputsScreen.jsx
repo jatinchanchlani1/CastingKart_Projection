@@ -144,6 +144,7 @@ function TeamMembersSection({ members, esopPercentage, onUpdate }) {
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-slate-500">Add team members with monthly salary and the month/year they start.</p>
       {/* Founders */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -209,6 +210,7 @@ function TeamMembersSection({ members, esopPercentage, onUpdate }) {
         max={25}
         step={1}
       />
+      <p className="text-xs text-slate-500">Percent of team salary added as ESOP cost.</p>
     </div>
   );
 }
@@ -397,7 +399,7 @@ export function MasterInputsScreen() {
                 </Select>
               </InputField>
               
-              <InputField label="Scenario">
+              <InputField label="Scenario" helper="Adjusts growth, conversion, and cost assumptions">
                 <Select
                   value={inputs.timeline.scenario}
                   onValueChange={(v) => updateInputs('timeline', 'scenario', v)}
@@ -418,6 +420,7 @@ export function MasterInputsScreen() {
               onChange={(v) => updateInputs('timeline', 'inflation_rate', v)}
               min={0} max={15} step={0.5}
             />
+            <p className="text-xs text-slate-500">Annual cost inflation applied to salaries and operating costs.</p>
           </CardContent>
         </Card>
 
@@ -434,7 +437,7 @@ export function MasterInputsScreen() {
               <Label className="text-sm font-semibold text-slate-700 mb-3 block">Artists</Label>
               <div className="grid grid-cols-5 gap-2">
                 {['y1', 'y2', 'y3', 'y4', 'y5'].map((year, idx) => (
-                  <InputField key={year} label={`Y${idx + 1}`}>
+                  <InputField key={year} label={`Y${idx + 1}`} helper="End-of-year artist count">
                     <NumberInput
                       value={inputs.user_growth[`artists_${year}`]}
                       onChange={(v) => updateInputs('user_growth', `artists_${year}`, v)}
@@ -447,7 +450,7 @@ export function MasterInputsScreen() {
               <Label className="text-sm font-semibold text-slate-700 mb-3 block">Casting Directors</Label>
               <div className="grid grid-cols-5 gap-2">
                 {['y1', 'y2', 'y3', 'y4', 'y5'].map((year, idx) => (
-                  <InputField key={year} label={`Y${idx + 1}`}>
+                  <InputField key={year} label={`Y${idx + 1}`} helper="End-of-year CD count">
                     <NumberInput
                       value={inputs.user_growth[`cds_${year}`]}
                       onChange={(v) => updateInputs('user_growth', `cds_${year}`, v)}
@@ -470,26 +473,26 @@ export function MasterInputsScreen() {
           <CardContent className="space-y-4">
             <Label className="text-sm font-semibold text-slate-700">Artist Premium</Label>
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Price/month">
+              <InputField label="Price/month" helper="Monthly subscription price for artists">
                 <NumberInput value={inputs.artist_monetization.premium_price} onChange={(v) => updateInputs('artist_monetization', 'premium_price', v)} prefix="₹" />
               </InputField>
-              <InputField label="Conversion %">
+              <InputField label="Conversion %" helper="Percent of artists who upgrade to premium">
                 <NumberInput value={inputs.artist_monetization.conversion_rate} onChange={(v) => updateInputs('artist_monetization', 'conversion_rate', v)} suffix="%" max={100} step={0.5} />
               </InputField>
-              <InputField label="Churn %">
+              <InputField label="Churn %" helper="Monthly premium churn rate for artists">
                 <NumberInput value={inputs.artist_monetization.churn_rate} onChange={(v) => updateInputs('artist_monetization', 'churn_rate', v)} suffix="%" max={100} step={0.5} />
               </InputField>
             </div>
             
             <Label className="text-sm font-semibold text-slate-700">CD Premium</Label>
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Price/month">
+              <InputField label="Price/month" helper="Monthly subscription price for CDs">
                 <NumberInput value={inputs.cd_monetization.premium_price} onChange={(v) => updateInputs('cd_monetization', 'premium_price', v)} prefix="₹" />
               </InputField>
-              <InputField label="Conversion %">
+              <InputField label="Conversion %" helper="Percent of CDs who upgrade to premium">
                 <NumberInput value={inputs.cd_monetization.conversion_rate} onChange={(v) => updateInputs('cd_monetization', 'conversion_rate', v)} suffix="%" max={100} step={0.5} />
               </InputField>
-              <InputField label="Churn %">
+              <InputField label="Churn %" helper="Monthly premium churn rate for CDs">
                 <NumberInput value={inputs.cd_monetization.churn_rate} onChange={(v) => updateInputs('cd_monetization', 'churn_rate', v)} suffix="%" max={100} step={0.5} />
               </InputField>
             </div>
@@ -508,26 +511,26 @@ export function MasterInputsScreen() {
           <CardContent className="space-y-4">
             <Label className="text-sm font-semibold text-slate-700">Free Tier Limits</Label>
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Free Boosts">
+              <InputField label="Free Boosts" helper="Free boosts included per CD per month">
                 <NumberInput value={inputs.plan_limits.free_boosts_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'free_boosts_per_cd_per_month', v)} />
               </InputField>
-              <InputField label="Free Invites">
+              <InputField label="Free Invites" helper="Free direct invites per CD per month">
                 <NumberInput value={inputs.plan_limits.free_invites_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'free_invites_per_cd_per_month', v)} />
               </InputField>
-              <InputField label="Free Auditions">
+              <InputField label="Free Auditions" helper="Free audition requests per CD per month">
                 <NumberInput value={inputs.plan_limits.free_auditions_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'free_auditions_per_cd_per_month', v)} />
               </InputField>
             </div>
 
             <Label className="text-sm font-semibold text-slate-700">Premium Tier Limits</Label>
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Premium Boosts">
+              <InputField label="Premium Boosts" helper="Included boosts for premium CDs per month">
                 <NumberInput value={inputs.plan_limits.premium_boosts_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'premium_boosts_per_cd_per_month', v)} />
               </InputField>
-              <InputField label="Premium Invites">
+              <InputField label="Premium Invites" helper="Included direct invites for premium CDs">
                 <NumberInput value={inputs.plan_limits.premium_invites_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'premium_invites_per_cd_per_month', v)} />
               </InputField>
-              <InputField label="Premium Auditions">
+              <InputField label="Premium Auditions" helper="Included audition requests for premium CDs">
                 <NumberInput value={inputs.plan_limits.premium_auditions_per_cd_per_month} onChange={(v) => updateInputs('plan_limits', 'premium_auditions_per_cd_per_month', v)} />
               </InputField>
             </div>
@@ -544,21 +547,21 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Boost Price">
+              <InputField label="Boost Price" helper="Price per paid boost">
                 <NumberInput value={inputs.monetized_actions.boost_price} onChange={(v) => updateInputs('monetized_actions', 'boost_price', v)} prefix="₹" />
               </InputField>
-              <InputField label="Invite Credit Price">
+              <InputField label="Invite Credit Price" helper="Price per extra invite credit">
                 <NumberInput value={inputs.monetized_actions.invite_credit_price} onChange={(v) => updateInputs('monetized_actions', 'invite_credit_price', v)} prefix="₹" />
               </InputField>
-              <InputField label="Audition Credit Price">
+              <InputField label="Audition Credit Price" helper="Price per extra audition credit">
                 <NumberInput value={inputs.monetized_actions.audition_credit_price} onChange={(v) => updateInputs('monetized_actions', 'audition_credit_price', v)} prefix="₹" />
               </InputField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Ads Revenue/Free User/Month">
+              <InputField label="Ads Revenue/Free User/Month" helper="Avg ad revenue per free user">
                 <NumberInput value={inputs.monetized_actions.ads_revenue_per_free_user_per_month} onChange={(v) => updateInputs('monetized_actions', 'ads_revenue_per_free_user_per_month', v)} prefix="₹" step={0.5} />
               </InputField>
-              <InputField label="Ads Revenue/Premium User/Month">
+              <InputField label="Ads Revenue/Premium User/Month" helper="Avg ad revenue per premium user">
                 <NumberInput value={inputs.monetized_actions.ads_revenue_per_premium_user_per_month} onChange={(v) => updateInputs('monetized_actions', 'ads_revenue_per_premium_user_per_month', v)} prefix="₹" step={0.5} />
               </InputField>
             </div>
@@ -575,41 +578,41 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Jobs/CD/Month">
+              <InputField label="Jobs/CD/Month" helper="Average jobs posted per CD per month">
                 <NumberInput value={inputs.volume_assumptions.avg_jobs_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'avg_jobs_per_cd_per_month', v)} step={0.5} />
               </InputField>
-              <InputField label="Applications/Job">
+              <InputField label="Applications/Job" helper="Average applicants per job">
                 <NumberInput value={inputs.volume_assumptions.avg_applications_per_job} onChange={(v) => updateInputs('volume_assumptions', 'avg_applications_per_job', v)} />
               </InputField>
-              <InputField label="Artist Uploads/Month">
+              <InputField label="Artist Uploads/Month" helper="Avg profile media uploads per artist">
                 <NumberInput value={inputs.volume_assumptions.artist_uploads_per_month} onChange={(v) => updateInputs('volume_assumptions', 'artist_uploads_per_month', v)} step={0.05} />
               </InputField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Boost Rate (Free %)">
+              <InputField label="Boost Rate (Free %)" helper="Percent of free CD jobs boosted">
                 <NumberInput value={inputs.volume_assumptions.boost_rate_free_pct} onChange={(v) => updateInputs('volume_assumptions', 'boost_rate_free_pct', v)} suffix="%" step={1} />
               </InputField>
-              <InputField label="Boost Rate (Premium %)">
+              <InputField label="Boost Rate (Premium %)" helper="Percent of premium CD jobs boosted">
                 <NumberInput value={inputs.volume_assumptions.boost_rate_premium_pct} onChange={(v) => updateInputs('volume_assumptions', 'boost_rate_premium_pct', v)} suffix="%" step={1} />
               </InputField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Invites/CD/Month (Free)">
+              <InputField label="Invites/CD/Month (Free)" helper="Avg direct invites by free CDs">
                 <NumberInput value={inputs.volume_assumptions.direct_invites_free_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'direct_invites_free_per_cd_per_month', v)} step={0.5} />
               </InputField>
-              <InputField label="Invites/CD/Month (Premium)">
+              <InputField label="Invites/CD/Month (Premium)" helper="Avg direct invites by premium CDs">
                 <NumberInput value={inputs.volume_assumptions.direct_invites_premium_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'direct_invites_premium_per_cd_per_month', v)} step={0.5} />
               </InputField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Auditions/CD/Month (Free)">
+              <InputField label="Auditions/CD/Month (Free)" helper="Avg audition requests by free CDs">
                 <NumberInput value={inputs.volume_assumptions.auditions_free_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'auditions_free_per_cd_per_month', v)} step={0.5} />
               </InputField>
-              <InputField label="Auditions/CD/Month (Premium)">
+              <InputField label="Auditions/CD/Month (Premium)" helper="Avg audition requests by premium CDs">
                 <NumberInput value={inputs.volume_assumptions.auditions_premium_per_cd_per_month} onChange={(v) => updateInputs('volume_assumptions', 'auditions_premium_per_cd_per_month', v)} step={0.5} />
               </InputField>
             </div>
-            <InputField label="Notifications/User/Month">
+            <InputField label="Notifications/User/Month" helper="Avg notifications sent per user">
               <NumberInput value={inputs.volume_assumptions.notifications_per_user_per_month} onChange={(v) => updateInputs('volume_assumptions', 'notifications_per_user_per_month', v)} step={0.5} />
             </InputField>
           </CardContent>
@@ -625,24 +628,24 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Payment Processing %">
+              <InputField label="Payment Processing %" helper="Gateway fee on paid revenue">
                 <NumberInput value={inputs.unit_costs.payment_processing_pct} onChange={(v) => updateInputs('unit_costs', 'payment_processing_pct', v)} suffix="%" step={0.1} />
               </InputField>
-              <InputField label="AI Tagging/Upload">
+              <InputField label="AI Tagging/Upload" helper="Cost per new artist upload">
                 <NumberInput value={inputs.unit_costs.ai_tagging_cost_per_upload} onChange={(v) => updateInputs('unit_costs', 'ai_tagging_cost_per_upload', v)} prefix="₹" step={0.5} />
               </InputField>
-              <InputField label="AI Search/Premium User/Month">
+              <InputField label="AI Search/Premium User/Month" helper="AI search cost per premium user">
                 <NumberInput value={inputs.unit_costs.ai_search_cost_per_premium_user_per_month} onChange={(v) => updateInputs('unit_costs', 'ai_search_cost_per_premium_user_per_month', v)} prefix="₹" step={0.5} />
               </InputField>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Audition Video/Request">
+              <InputField label="Audition Video/Request" helper="Storage/compute cost per audition">
                 <NumberInput value={inputs.unit_costs.audition_video_cost_per_request} onChange={(v) => updateInputs('unit_costs', 'audition_video_cost_per_request', v)} prefix="₹" step={0.5} />
               </InputField>
-              <InputField label="Notification Cost/Message">
+              <InputField label="Notification Cost/Message" helper="SMS/push/email cost per notification">
                 <NumberInput value={inputs.unit_costs.notification_cost_per_message} onChange={(v) => updateInputs('unit_costs', 'notification_cost_per_message', v)} prefix="₹" step={0.1} />
               </InputField>
-              <InputField label="Ad Serving Cost %">
+              <InputField label="Ad Serving Cost %" helper="Cost % of ad revenue">
                 <NumberInput value={inputs.unit_costs.ad_serving_cost_pct} onChange={(v) => updateInputs('unit_costs', 'ad_serving_cost_pct', v)} suffix="%" step={0.5} />
               </InputField>
             </div>
@@ -675,6 +678,7 @@ export function MasterInputsScreen() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-slate-500 mb-2">Fields: round name, amount, timing, and investor (optional).</p>
             <DynamicItemsSection
               items={inputs.funding.rounds}
               onUpdate={(items) => updateInputs('funding', 'rounds', items)}
@@ -697,20 +701,20 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Office Rent" helper="Monthly">
+              <InputField label="Office Rent" helper="Monthly rent cost">
                 <NumberInput value={inputs.physical_infra.office_rent} onChange={(v) => updateInputs('physical_infra', 'office_rent', v)} prefix="₹" />
               </InputField>
-              <InputField label="Electricity" helper="Monthly">
+              <InputField label="Electricity" helper="Monthly utility cost">
                 <NumberInput value={inputs.physical_infra.electricity} onChange={(v) => updateInputs('physical_infra', 'electricity', v)} prefix="₹" />
               </InputField>
-              <InputField label="Internet" helper="Monthly">
+              <InputField label="Internet" helper="Monthly internet cost">
                 <NumberInput value={inputs.physical_infra.internet} onChange={(v) => updateInputs('physical_infra', 'internet', v)} prefix="₹" />
               </InputField>
-              <InputField label="Maintenance" helper="Monthly">
+              <InputField label="Maintenance" helper="Monthly maintenance cost">
                 <NumberInput value={inputs.physical_infra.maintenance} onChange={(v) => updateInputs('physical_infra', 'maintenance', v)} prefix="₹" />
               </InputField>
             </div>
-            <InputField label="Office Starts From">
+            <InputField label="Office Starts From" helper="When office costs begin">
               <Select
                 value={`${inputs.physical_infra.office_start_year}-${inputs.physical_infra.office_start_month}`}
                 onValueChange={(v) => {
@@ -739,16 +743,16 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Hosting" helper="Monthly">
+              <InputField label="Hosting" helper="Monthly server/hosting cost">
                 <NumberInput value={inputs.digital_infra.hosting} onChange={(v) => updateInputs('digital_infra', 'hosting', v)} prefix="₹" />
               </InputField>
-              <InputField label="Storage" helper="Monthly">
+              <InputField label="Storage" helper="Monthly storage cost">
                 <NumberInput value={inputs.digital_infra.storage} onChange={(v) => updateInputs('digital_infra', 'storage', v)} prefix="₹" />
               </InputField>
-              <InputField label="SaaS Tools" helper="Monthly">
+              <InputField label="SaaS Tools" helper="Monthly SaaS subscriptions">
                 <NumberInput value={inputs.digital_infra.saas_tools} onChange={(v) => updateInputs('digital_infra', 'saas_tools', v)} prefix="₹" />
               </InputField>
-              <InputField label="AI Compute" helper="When enabled">
+              <InputField label="AI Compute" helper="Monthly AI infra when enabled">
                 <NumberInput value={inputs.digital_infra.ai_compute_enabled} onChange={(v) => updateInputs('digital_infra', 'ai_compute_enabled', v)} prefix="₹" />
               </InputField>
             </div>
@@ -764,6 +768,7 @@ export function MasterInputsScreen() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-slate-500 mb-2">Fields: name, unit cost, quantity, and purchase timing (Y/M).</p>
             <DynamicItemsSection
               items={inputs.hardware_costs.items}
               onUpdate={(items) => updateInputs('hardware_costs', 'items', items)}
@@ -783,14 +788,22 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Organic">
+              <InputField label="Organic" helper="Monthly organic marketing spend">
                 <NumberInput value={inputs.marketing_costs.organic} onChange={(v) => updateInputs('marketing_costs', 'organic', v)} prefix="₹" />
               </InputField>
-              <InputField label="Paid">
+              <InputField label="Paid" helper="Monthly paid marketing spend">
                 <NumberInput value={inputs.marketing_costs.paid} onChange={(v) => updateInputs('marketing_costs', 'paid', v)} prefix="₹" />
               </InputField>
-              <InputField label="Influencer">
+              <InputField label="Influencer" helper="Monthly influencer spend">
                 <NumberInput value={inputs.marketing_costs.influencer} onChange={(v) => updateInputs('marketing_costs', 'influencer', v)} prefix="₹" />
+              </InputField>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <InputField label="Ramp Months (Y1)" helper="Months to reach full paid/influencer spend">
+                <NumberInput value={inputs.marketing_costs.ramp_months_y1} onChange={(v) => updateInputs('marketing_costs', 'ramp_months_y1', v)} min={1} step={1} />
+              </InputField>
+              <InputField label="Annual Scale %" helper="Yearly growth rate for marketing budget">
+                <NumberInput value={inputs.marketing_costs.annual_scale_pct} onChange={(v) => updateInputs('marketing_costs', 'annual_scale_pct', v)} suffix="%" step={1} />
               </InputField>
             </div>
           </CardContent>
@@ -805,6 +818,7 @@ export function MasterInputsScreen() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-slate-500 mb-2">Fields: name, monthly amount, start timing, and recurring vs one‑time.</p>
             <DynamicItemsSection
               items={inputs.travel_costs.items}
               onUpdate={(items) => updateInputs('travel_costs', 'items', items)}
@@ -824,17 +838,18 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <InputField label="Legal">
+              <InputField label="Legal" helper="Monthly legal expenses">
                 <NumberInput value={inputs.admin_costs.legal} onChange={(v) => updateInputs('admin_costs', 'legal', v)} prefix="₹" />
               </InputField>
-              <InputField label="Compliance">
+              <InputField label="Compliance" helper="Monthly compliance costs">
                 <NumberInput value={inputs.admin_costs.compliance} onChange={(v) => updateInputs('admin_costs', 'compliance', v)} prefix="₹" />
               </InputField>
-              <InputField label="Accounting">
+              <InputField label="Accounting" helper="Monthly accounting costs">
                 <NumberInput value={inputs.admin_costs.accounting} onChange={(v) => updateInputs('admin_costs', 'accounting', v)} prefix="₹" />
               </InputField>
             </div>
             <SliderInput label="Misc Buffer %" value={inputs.admin_costs.misc_buffer_percentage} onChange={(v) => updateInputs('admin_costs', 'misc_buffer_percentage', v)} min={0} max={25} step={1} />
+            <p className="text-xs text-slate-500">Extra admin buffer applied on total admin costs.</p>
           </CardContent>
         </Card>
 
@@ -847,6 +862,7 @@ export function MasterInputsScreen() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-slate-500 mb-2">Fields: name, amount, start timing, and recurring vs one‑time.</p>
             <DynamicItemsSection
               items={inputs.other_expenses.items}
               onUpdate={(items) => updateInputs('other_expenses', 'items', items)}
@@ -865,6 +881,7 @@ export function MasterInputsScreen() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-slate-500 mb-2">Fields: name, amount, start timing, and recurring vs one‑time.</p>
             <DynamicItemsSection
               items={inputs.other_income.items}
               onUpdate={(items) => updateInputs('other_income', 'items', items)}
@@ -884,16 +901,16 @@ export function MasterInputsScreen() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Corporate Tax %">
+              <InputField label="Corporate Tax %" helper="Tax on positive EBIT">
                 <NumberInput value={inputs.tax_inputs.corporate_tax_rate} onChange={(v) => updateInputs('tax_inputs', 'corporate_tax_rate', v)} suffix="%" max={40} />
               </InputField>
-              <InputField label="GST Rate %">
+              <InputField label="GST Rate %" helper="Indirect tax rate (if applicable)">
                 <NumberInput value={inputs.tax_inputs.gst_rate} onChange={(v) => updateInputs('tax_inputs', 'gst_rate', v)} suffix="%" max={28} />
               </InputField>
-              <InputField label="TDS Rate %">
+              <InputField label="TDS Rate %" helper="Withholding tax rate">
                 <NumberInput value={inputs.tax_inputs.tds_rate} onChange={(v) => updateInputs('tax_inputs', 'tds_rate', v)} suffix="%" max={30} />
               </InputField>
-              <InputField label="Depreciation %">
+              <InputField label="Depreciation %" helper="Annual depreciation on opex">
                 <NumberInput value={inputs.tax_inputs.depreciation_rate} onChange={(v) => updateInputs('tax_inputs', 'depreciation_rate', v)} suffix="%" max={40} />
               </InputField>
             </div>

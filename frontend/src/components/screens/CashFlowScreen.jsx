@@ -80,7 +80,7 @@ export function CashFlowScreen() {
   }));
 
   // Calculate metrics
-  const initialFunding = inputs.funding.seed_funding;
+  const initialFunding = cashflow.initial_funding || 0;
   const currentCash = cashflow.monthly.cumulative_cash[11]; // End of Y1
   const avgMonthlyBurn = cashflow.monthly.net_burn.filter(b => b > 0).reduce((a, b) => a + b, 0) / 
     Math.max(cashflow.monthly.net_burn.filter(b => b > 0).length, 1);
@@ -294,9 +294,6 @@ export function CashFlowScreen() {
                 Based on current burn rate of <span className="font-mono font-semibold">{formatCurrency(avgMonthlyBurn, true)}/month</span> and 
                 ending Y1 cash of <span className="font-mono font-semibold">{formatCurrency(currentCash, true)}</span>, 
                 your runway is approximately <span className="font-mono font-semibold">{runwayMonths > 100 ? '100+' : runwayMonths} months</span>.
-                {inputs.funding.series_a_year <= 5 && (
-                  <span> Series A funding of {formatCurrency(inputs.funding.series_a_amount, true)} is planned for Year {inputs.funding.series_a_year}.</span>
-                )}
               </p>
             </div>
           </div>

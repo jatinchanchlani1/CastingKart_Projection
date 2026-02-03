@@ -173,6 +173,8 @@ class MarketingCosts(BaseModel):
     organic: float = 10000.0
     paid: float = 20000.0
     influencer: float = 15000.0
+    ramp_months_y1: int = 6
+    annual_scale_pct: float = 50.0
 
 class AdminCosts(BaseModel):
     legal: float = 10000.0
@@ -241,10 +243,7 @@ class FundingRound(BaseModel):
     notes: str = ""
 
 class FundingInputs(BaseModel):
-    rounds: List[FundingRound] = Field(default_factory=lambda: [
-        FundingRound(name="Seed Round", amount=5000000, month=1, year=1, investor="Angel Investors", notes="Initial capital"),
-        FundingRound(name="Series A", amount=25000000, month=1, year=3, investor="VC Fund", notes="Growth funding"),
-    ])
+    rounds: List[FundingRound] = Field(default_factory=list)
 
 class FinancialInputs(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -652,7 +651,8 @@ def calculate_costs(inputs: FinancialInputs, revenue: Dict[str, Any]) -> Dict[st
                 hardware += item.unit_cost * item.quantity
         
         # Marketing
-        marketing_ramp = min(1.0, month / 6)
+        ramp_months = max(mc.ramp_months_y1, 1)
+        marketing_ramp = min(1.0, month / ramp_months)
         marketing = (mc.organic + mc.paid * marketing_ramp + mc.influencer * marketing_ramp) * cost_mult
         
         # Travel
@@ -738,7 +738,7 @@ def calculate_costs(inputs: FinancialInputs, revenue: Dict[str, Any]) -> Dict[st
                 hardware += item.unit_cost * item.quantity
         
         # Marketing
-        marketing_scale = 1 + year * 0.5
+        marketing_scale = (1 + mc.annual_scale_pct / 100) ** year
         marketing = (mc.organic + mc.paid + mc.influencer) * 12 * marketing_scale * inflation_factor * cost_mult
         
         # Travel
